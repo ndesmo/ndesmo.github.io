@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "House prices: data exploration"
-date: 2017-10-04
+date: 2017-04-10
 categories: rblogging
 tags: test ggplot2
 ---
