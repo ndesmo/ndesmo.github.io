@@ -1,0 +1,73 @@
+---
+title: 'House prices: data exploration'
+output:
+  md_document:
+    variant: markdown_github
+#output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(moments)
+library(reshape2)
+```
+
+
+``` {r load-data, echo=FALSE}
+train <- read.csv('train.csv')
+test <- read.csv('test.csv')
+sample_submission <- read.csv('sample_submission.csv')
+```
+
+## Overview
+
+In this post I will be doing simple exploratory data analysis of the [Ames Housing dataset](https://ww2.amstat.org/publications/jse/v19n3/decock.pdf) used in the Kaggle competition [House Prices: Advanced Regression Techniques](https://www.kaggle.com/c/house-prices-advanced-regression-techniques). This is my first blog post here so it's also an exercise in creating blog posts!
+
+### Aims
+
+The problem is to try to correctly predict the house prices in the test dataset by training a regression model on the training data. The dataset to be submitted to Kaggle will have the following form:
+
+``` {r sample-submission, echo=FALSE}
+knitr::kable(head(sample_submission))
+```
+
+## Analysis
+
+Here I will provide a simple exploratory analysis of the training data. In subsequent posts, I will go into developing the model.
+
+### Columns
+
+Here are the columns available in the dataset:
+
+``` {r columns}
+names(train)
+```
+
+The last column "SalePrice" is the one we will be measuring. There are 80 other features that we should try to make use of to predict SalePrice.
+
+### Distribution of house prices
+
+First things first, let's look at how the house prices are distributed.
+
+``` {r house-prices}
+sp <- train %>% select(SalePrice)
+ggplot(sp, aes(SalePrice, fill='1')) + geom_histogram() + guides(fill=FALSE)
+```
+
+We can see that the distribution is not normal. It has a positive skew.
+
+``` {r skew-kurtosis}
+sp %>% summarise(Skewness = skewness(SalePrice), Kurtosis = kurtosis(SalePrice))
+```
+
+### Feature correlation
+
+``` {r corr-heatmap}
+corrdata <- train %>% select(which(sapply(.,is.numeric)))
+qplot(x=Var1, y=Var2, data=melt(cor(corrdata, use="p")), fill=value, geom="tile") +
+  scale_fill_gradient2(limits=c(-1, 1)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(x = 'Features', y = 'Features')
+```

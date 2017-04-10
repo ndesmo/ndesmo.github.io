@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "---\ntitle: 'House prices: data exploration'\noutput:\n  md_document:\n    variant: markdown_github\n#output: html_document\n---\n\n```{r setup, include=FALSE}\nknitr::opts_chunk$set(echo = TRUE)\nlibrary(dplyr)\nlibrary(ggplot2)\nlibrary(moments)\nlibrary(reshape2)\n```\n\n\n``` {r load-data, echo=FALSE}\ntrain <- read.csv('train.csv')\ntest <- read.csv('test.csv')\nsample_submission <- read.csv('sample_submission.csv')\n```\n\n## Overview\n\nIn this post I will be doing simple exploratory data analysis of the [Ames Housing dataset](https://ww2.amstat.org/publications/jse/v19n3/decock.pdf) used in the Kaggle competition [House Prices: Advanced Regression Techniques](https://www.kaggle.com/c/house-prices-advanced-regression-techniques). This is my first blog post here so it's also an exercise in creating blog posts!\n\n### Aims\n\nThe problem is to try to correctly predict the house prices in the test dataset by training a regression model on the training data. The dataset to be submitted to Kaggle will have the following form:\n\n``` {r sample-submission, echo=FALSE}\nknitr::kable(head(sample_submission))\n```\n\n## Analysis\n\nHere I will provide a simple exploratory analysis of the training data. In subsequent posts, I will go into developing the model.\n\n### Columns\n\nHere are the columns available in the dataset:\n\n``` {r columns}\nnames(train)\n```\n\nThe last column \"SalePrice\" is the one we will be measuring. There are 80 other features that we should try to make use of to predict SalePrice.\n\n### Distribution of house prices\n\nFirst things first, let's look at how the house prices are distributed.\n\n``` {r house-prices}\nsp <- train %>% select(SalePrice)\nggplot(sp, aes(SalePrice, fill='1')) + geom_histogram() + guides(fill=FALSE)\n```\n\nWe can see that the distribution is not normal. It has a positive skew.\n\n``` {r skew-kurtosis}\nsp %>% summarise(Skewness = skewness(SalePrice), Kurtosis = kurtosis(SalePrice))\n```\n\n### Feature correlation\n\n``` {r corr-heatmap}\ncorrdata <- train %>% select(which(sapply(.,is.numeric)))\nqplot(x=Var1, y=Var2, data=melt(cor(corrdata, use=\"p\")), fill=value, geom=\"tile\") +\n  scale_fill_gradient2(limits=c(-1, 1)) +\n  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +\n  labs(x = 'Features', y = 'Features')\n```",
+    "created" : 1491827789635.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1713430961",
+    "id" : "809D731E",
+    "lastKnownWriteTime" : 1491831162,
+    "last_content_update" : 1491831162529,
+    "path" : "~/CAN/ndesmo.github.io/R/houseprices/explore.Rmd",
+    "project_path" : "R/houseprices/explore.Rmd",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
