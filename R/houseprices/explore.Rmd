@@ -1,25 +1,18 @@
 ---
 title: 'House prices: data exploration'
-output:
-  md_document:
-    variant: markdown_github
-#output: html_document
+#output:
+#  md_document:
+#    variant: markdown_github
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
 library(ggplot2)
-library(moments)
 library(reshape2)
 ```
 
-
-``` {r load-data, echo=FALSE}
-train <- read.csv('train.csv')
-test <- read.csv('test.csv')
-sample_submission <- read.csv('sample_submission.csv')
-```
 
 ## Overview
 
@@ -27,15 +20,20 @@ In this post I will be doing simple exploratory data analysis of the [Ames Housi
 
 ### Aims
 
-The problem is to try to correctly predict the house prices in the test dataset by training a regression model on the training data. The dataset to be submitted to Kaggle will have the following form:
-
-``` {r sample-submission, echo=FALSE}
-knitr::kable(head(sample_submission))
-```
-
-## Analysis
+The problem is to try to correctly predict the house prices in the test dataset by training a regression model on the training data.
 
 Here I will provide a simple exploratory analysis of the training data. In subsequent posts, I will go into developing the model.
+
+Let's get on with it then.
+
+``` {r load-data}
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+
+train <- read.csv('train.csv', stringsAsFactors = F)
+test <- read.csv('test.csv', stringsAsFactors = F)
+```
 
 ### Columns
 
@@ -45,27 +43,51 @@ Here are the columns available in the dataset:
 names(train)
 ```
 
-The last column "SalePrice" is the one we will be measuring. There are 80 other features that we should try to make use of to predict SalePrice.
+The last column "SalePrice" is the one we will be measuring so we won't include this in the full set. We bin the ID column straight away as it's not needed.
+
+``` {r union}
+full <-
+  train %>% select(-Id, -SalePrice) %>%
+  bind_rows(test %>% select(-Id))
+```
+
+## Data cleaning
+
+We look for missing values and try to fill these in
+
+``` {r summary}
+full %>% 
+  select(which(sapply(full, function(x)any(is.na(x))))) %>%
+  sapply(function(x)sum(ifelse(is.na(x), 1, 0))) %>%
+  sort(decreasing=T)
+```
+
+### PoolQC missing values
+
+``` {r poolqc}
+full %>%
+  select(PoolQC) %>%
+  group_by(PoolQC) %>%
+  summarise(Count = n())
+```
+
+What to fill in the NA's with? 
 
 ### Distribution of house prices
 
-First things first, let's look at how the house prices are distributed.
+First things first, let's look at how the house prices are distributed. House prices are positive so I will try a log transform:
 
 ``` {r house-prices}
-sp <- train %>% select(SalePrice)
-ggplot(sp, aes(SalePrice, fill='1')) + geom_histogram() + guides(fill=FALSE)
+sp <- train %>% mutate(SalePrice = log(SalePrice)) %>% select(SalePrice)
+ggplot(sp, aes(SalePrice), fill='cornflowerblue') + geom_histogram()
 ```
 
-We can see that the distribution is not normal. It has a positive skew.
 
-``` {r skew-kurtosis}
-sp %>% summarise(Skewness = skewness(SalePrice), Kurtosis = kurtosis(SalePrice))
-```
 
 ### Feature correlation
 
 ``` {r corr-heatmap}
-corrdata <- train %>% select(which(sapply(.,is.numeric)))
+corrdata <- train %>% select(-Id) %>% select(which(sapply(.,is.numeric)))
 qplot(x=Var1, y=Var2, data=melt(cor(corrdata, use="p")), fill=value, geom="tile") +
   scale_fill_gradient2(limits=c(-1, 1)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
