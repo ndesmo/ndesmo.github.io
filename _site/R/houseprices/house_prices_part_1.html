@@ -1,0 +1,1206 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>House prices: part one</title>
+    
+    <meta name="author" content="">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/themes/twitter/css/1.4.0/bootstrap.css" rel="stylesheet">
+    <link href="/assets/themes/twitter/css/style.css?body=1" rel="stylesheet" type="text/css" media="all">
+
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="topbar">
+      <div class="fill">
+        <div class="container">
+          <a class="brand" href="/"></a>
+          <ul class="nav">
+            
+            
+            
+
+
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+
+
+
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        
+
+<div class="page-header">
+  <h1>House prices: part one <small>Supporting tagline</small></h1>
+</div>
+
+<div class="row">
+  <div class="span10">
+    <h2 id="overview">Overview</h2>
+
+<p>In the following few posts I will be doing simple exploratory data analysis of the <a href="https://ww2.amstat.org/publications/jse/v19n3/decock.pdf">Ames Housing dataset</a> used in the Kaggle competition <a href="https://www.kaggle.com/c/house-prices-advanced-regression-techniques">House Prices: Advanced Regression Techniques</a>. In later posts, I will go on to run statistical models on the data. This is my first blog post here so it’s also an exercise in creating blog posts!</p>
+
+<p>The problem is to try to correctly predict the house prices in the test dataset by training a regression model on the training data.</p>
+
+<p>I will soon do an exploratory data analysis of the data, however to begin with, the data should be cleaned. In particular, the empty values should be filled in.</p>
+
+<p>First, let’s load the data.</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">dplyr</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">ggplot2</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">reshape2</span><span class="p">)</span><span class="w">
+
+</span><span class="n">train</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read.csv</span><span class="p">(</span><span class="s1">'train.csv'</span><span class="p">,</span><span class="w"> </span><span class="n">stringsAsFactors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">F</span><span class="p">)</span><span class="w">
+</span><span class="n">test</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">read.csv</span><span class="p">(</span><span class="s1">'test.csv'</span><span class="p">,</span><span class="w"> </span><span class="n">stringsAsFactors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">F</span><span class="p">)</span><span class="w">
+</span></code></pre>
+</div>
+
+<h3 id="columns">Columns</h3>
+
+<p>Here are the columns available in the dataset:</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="nf">names</span><span class="p">(</span><span class="n">train</span><span class="p">)</span><span class="w">
+</span></code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>##  [1] "Id"            "MSSubClass"    "MSZoning"      "LotFrontage"  
+##  [5] "LotArea"       "Street"        "Alley"         "LotShape"     
+##  [9] "LandContour"   "Utilities"     "LotConfig"     "LandSlope"    
+## [13] "Neighborhood"  "Condition1"    "Condition2"    "BldgType"     
+## [17] "HouseStyle"    "OverallQual"   "OverallCond"   "YearBuilt"    
+## [21] "YearRemodAdd"  "RoofStyle"     "RoofMatl"      "Exterior1st"  
+## [25] "Exterior2nd"   "MasVnrType"    "MasVnrArea"    "ExterQual"    
+## [29] "ExterCond"     "Foundation"    "BsmtQual"      "BsmtCond"     
+## [33] "BsmtExposure"  "BsmtFinType1"  "BsmtFinSF1"    "BsmtFinType2" 
+## [37] "BsmtFinSF2"    "BsmtUnfSF"     "TotalBsmtSF"   "Heating"      
+## [41] "HeatingQC"     "CentralAir"    "Electrical"    "X1stFlrSF"    
+## [45] "X2ndFlrSF"     "LowQualFinSF"  "GrLivArea"     "BsmtFullBath" 
+## [49] "BsmtHalfBath"  "FullBath"      "HalfBath"      "BedroomAbvGr" 
+## [53] "KitchenAbvGr"  "KitchenQual"   "TotRmsAbvGrd"  "Functional"   
+## [57] "Fireplaces"    "FireplaceQu"   "GarageType"    "GarageYrBlt"  
+## [61] "GarageFinish"  "GarageCars"    "GarageArea"    "GarageQual"   
+## [65] "GarageCond"    "PavedDrive"    "WoodDeckSF"    "OpenPorchSF"  
+## [69] "EnclosedPorch" "X3SsnPorch"    "ScreenPorch"   "PoolArea"     
+## [73] "PoolQC"        "Fence"         "MiscFeature"   "MiscVal"      
+## [77] "MoSold"        "YrSold"        "SaleType"      "SaleCondition"
+## [81] "SalePrice"
+</code></pre>
+</div>
+
+<p>The last column “SalePrice” is the one we will be measuring so we won’t include this in the full set. We bin the ID column straight away as it’s not needed.</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">&lt;-</span><span class="w">
+  </span><span class="n">train</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="n">select</span><span class="p">(</span><span class="o">-</span><span class="n">Id</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="n">SalePrice</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">bind_rows</span><span class="p">(</span><span class="n">test</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="n">select</span><span class="p">(</span><span class="o">-</span><span class="n">Id</span><span class="p">))</span><span class="w">
+</span></code></pre>
+</div>
+
+<h2 id="data-cleaning">Data cleaning</h2>
+
+<p>We look for missing values and try to fill these in</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> 
+  </span><span class="n">select</span><span class="p">(</span><span class="n">which</span><span class="p">(</span><span class="n">sapply</span><span class="p">(</span><span class="n">full</span><span class="p">,</span><span class="w"> </span><span class="k">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="nf">any</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">x</span><span class="p">)))))</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">sapply</span><span class="p">(</span><span class="k">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="nf">sum</span><span class="p">(</span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">x</span><span class="p">),</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">0</span><span class="p">)))</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">sort</span><span class="p">(</span><span class="n">decreasing</span><span class="o">=</span><span class="nb">T</span><span class="p">)</span><span class="w">
+</span></code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>##       PoolQC  MiscFeature        Alley        Fence  FireplaceQu 
+##         2909         2814         2721         2348         1420 
+##  LotFrontage  GarageYrBlt GarageFinish   GarageQual   GarageCond 
+##          486          159          159          159          159 
+##   GarageType     BsmtCond BsmtExposure     BsmtQual BsmtFinType2 
+##          157           82           82           81           80 
+## BsmtFinType1   MasVnrType   MasVnrArea     MSZoning    Utilities 
+##           79           24           23            4            2 
+## BsmtFullBath BsmtHalfBath   Functional  Exterior1st  Exterior2nd 
+##            2            2            2            1            1 
+##   BsmtFinSF1   BsmtFinSF2    BsmtUnfSF  TotalBsmtSF   Electrical 
+##            1            1            1            1            1 
+##  KitchenQual   GarageCars   GarageArea     SaleType 
+##            1            1            1            1
+</code></pre>
+</div>
+
+<h3 id="poolqc-missing-values">PoolQC missing values</h3>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">select</span><span class="p">(</span><span class="n">PoolQC</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">group_by</span><span class="p">(</span><span class="n">PoolQC</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">summarise</span><span class="p">(</span><span class="n">Count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="p">())</span><span class="w">
+</span></code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>## # A tibble: 4 × 2
+##   PoolQC Count
+##    &lt;chr&gt; &lt;int&gt;
+## 1     Ex     4
+## 2     Fa     2
+## 3     Gd     4
+## 4   &lt;NA&gt;  2909
+</code></pre>
+</div>
+
+<p>What to fill in the NA’s with? We will go for a default missing value. The data dictionary says that ‘NA’ means “no pool” so we’ll go with that.</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">&lt;-</span><span class="w">
+  </span><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">mutate</span><span class="p">(</span><span class="n">PoolQC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">PoolQC</span><span class="p">),</span><span class="w"> </span><span class="s1">'None'</span><span class="p">,</span><span class="w"> </span><span class="n">PoolQC</span><span class="p">))</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>What is the situation with PoolArea?</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="n">filter</span><span class="p">(</span><span class="n">PoolQC</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">'None'</span><span class="p">,</span><span class="w"> </span><span class="n">PoolArea</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="m">0</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="n">select</span><span class="p">(</span><span class="n">PoolArea</span><span class="p">)</span><span class="w">
+</span></code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>##   PoolArea
+## 1      368
+## 2      444
+## 3      561
+</code></pre>
+</div>
+
+<p>There are 3 instances of Pools with non-zero area but “don’t exist”. To fix this let’s look at the relationship between PoolQC and PoolArea</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">filter</span><span class="p">(</span><span class="n">PoolQC</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="s1">'None'</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> 
+  </span><span class="n">ggplot</span><span class="p">(</span><span class="n">aes</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">factor</span><span class="p">(</span><span class="n">PoolQC</span><span class="p">),</span><span class="w"> </span><span class="n">y</span><span class="o">=</span><span class="n">PoolArea</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w"> 
+  </span><span class="n">geom_boxplot</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="s1">'cornflowerblue'</span><span class="p">)</span><span class="w">
+</span></code></pre>
+</div>
+
+<p><img src="house_prices_part_1_files/figure-markdown_github/poolqc-poolarea-1.png" alt="" /></p>
+
+<p>So it looks like the 3 cases of non-existent pools with area &gt; 0 should all be given PoolQC = ‘Ex’</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">&lt;-</span><span class="w">
+  </span><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">mutate</span><span class="p">(</span><span class="n">PoolQC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="n">PoolQC</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">'None'</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">PoolArea</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="s1">'Ex'</span><span class="p">,</span><span class="w"> </span><span class="n">PoolQC</span><span class="p">))</span><span class="w">
+</span></code></pre>
+</div>
+
+<h3 id="miscfeature-missing-values">MiscFeature missing values</h3>
+
+<p>Next on the list is MiscFeature. The data dictionary describes this as “Miscellaneous feature not covered in other categories”. Lets do a count of each value:</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">group_by</span><span class="p">(</span><span class="n">MiscFeature</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">summarise</span><span class="p">(</span><span class="n">Count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="p">())</span><span class="w">
+</span></code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>## # A tibble: 5 × 2
+##   MiscFeature Count
+##         &lt;chr&gt; &lt;int&gt;
+## 1        Gar2     5
+## 2        Othr     4
+## 3        Shed    95
+## 4        TenC     1
+## 5        &lt;NA&gt;  2814
+</code></pre>
+</div>
+
+<p>I think we’re good to go ahead and fill in the missing values of MiscFeature with ‘None’.</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">&lt;-</span><span class="w">
+  </span><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">mutate</span><span class="p">(</span><span class="n">MiscFeature</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">MiscFeature</span><span class="p">),</span><span class="w"> </span><span class="s1">'None'</span><span class="p">,</span><span class="w"> </span><span class="n">MiscFeature</span><span class="p">))</span><span class="w">
+</span></code></pre>
+</div>
+
+<h3 id="miscfeature-second-garages">MiscFeature Second Garages</h3>
+
+<p>Value of Gar2 means there is a second Garage. Let’s check whether this is accurately represented in the data</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w">  </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">filter</span><span class="p">(</span><span class="n">MiscFeature</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">'Gar2'</span><span class="p">)</span><span class="o">%&gt;%</span><span class="w"> 
+  </span><span class="n">select</span><span class="p">(</span><span class="n">GarageType</span><span class="p">,</span><span class="w"> </span><span class="n">GarageYrBlt</span><span class="p">,</span><span class="w"> </span><span class="n">GarageFinish</span><span class="p">,</span><span class="w"> </span><span class="n">GarageCars</span><span class="p">,</span><span class="w"> </span><span class="n">GarageArea</span><span class="p">,</span><span class="w"> </span><span class="n">GarageQual</span><span class="p">,</span><span class="w"> </span><span class="n">GarageCond</span><span class="p">)</span><span class="w">
+</span></code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>##   GarageType GarageYrBlt GarageFinish GarageCars GarageArea GarageQual
+## 1     Attchd        1960          RFn          1        301         TA
+## 2    BuiltIn        1977          RFn          2        600         TA
+## 3     Attchd        1958          Unf          1        312         TA
+## 4     Attchd        1953          RFn          1        286         TA
+## 5     Detchd        2002          Unf          2        624         TA
+##   GarageCond
+## 1         TA
+## 2         TA
+## 3         TA
+## 4         TA
+## 5         TA
+</code></pre>
+</div>
+
+<p>Good, so there’s no existence of 2nd garages without a first. However I wonder if there are garages with more Cars in them without room for them.</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="n">ggplot</span><span class="p">(</span><span class="n">aes</span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GarageArea</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="o">=</span><span class="n">GarageCars</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">geom_point</span><span class="p">(</span><span class="n">colour</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'cornflowerblue'</span><span class="p">)</span><span class="w">
+</span></code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>## Warning: Removed 1 rows containing missing values (geom_point).
+</code></pre>
+</div>
+
+<p><img src="house_prices_part_1_files/figure-markdown_github/cars-garage-1.png" alt="" /></p>
+
+<p>This looks to be behaving well. There dont seem to be any outliers towards the left and top of the graph.</p>
+
+<h3 id="fireplacequ-missing-values">FireplaceQu missing values</h3>
+
+<p>We use the Fireplaces column to fix the FireplaceQu missing values</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">filter</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">FireplaceQu</span><span class="p">),</span><span class="w"> </span><span class="n">Fireplaces</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="m">0</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">select</span><span class="p">(</span><span class="n">Fireplaces</span><span class="p">,</span><span class="w"> </span><span class="n">FireplaceQu</span><span class="p">)</span><span class="w">
+</span></code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>## [1] Fireplaces  FireplaceQu
+## &lt;0 rows&gt; (or 0-length row.names)
+</code></pre>
+</div>
+
+<p>Hence, we assign all blank FireplaceQu to ‘None’.</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">&lt;-</span><span class="w">
+  </span><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">mutate</span><span class="p">(</span><span class="n">FireplaceQu</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">FireplaceQu</span><span class="p">),</span><span class="w"> </span><span class="s1">'None'</span><span class="p">,</span><span class="w"> </span><span class="n">FireplaceQu</span><span class="p">))</span><span class="w">
+</span></code></pre>
+</div>
+
+<h3 id="lotfrontage-missing-values">LotFrontage missing values</h3>
+
+<p>Does lack of a value mean 0 feet as lot frontage?</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">filter</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">LotFrontage</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">LotFrontage</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">0</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">summarise</span><span class="p">(</span><span class="n">Count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="p">())</span><span class="w">
+</span></code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>##   Count
+## 1   486
+</code></pre>
+</div>
+
+<p>Since there are only NA’s and no 0’s then let’s assume so</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">&lt;-</span><span class="w">
+  </span><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">mutate</span><span class="p">(</span><span class="n">LotFrontage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">LotFrontage</span><span class="p">),</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">LotFrontage</span><span class="p">))</span><span class="w">
+</span></code></pre>
+</div>
+
+<h3 id="garages">Garages</h3>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">filter</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">GarageType</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w">
+           </span><span class="nf">is.na</span><span class="p">(</span><span class="n">GarageYrBlt</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w">
+           </span><span class="nf">is.na</span><span class="p">(</span><span class="n">GarageFinish</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w">
+           </span><span class="nf">is.na</span><span class="p">(</span><span class="n">GarageCars</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w">
+           </span><span class="nf">is.na</span><span class="p">(</span><span class="n">GarageArea</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w">
+           </span><span class="nf">is.na</span><span class="p">(</span><span class="n">GarageQual</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w">
+           </span><span class="nf">is.na</span><span class="p">(</span><span class="n">GarageCond</span><span class="p">))</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">group_by</span><span class="p">(</span><span class="n">GarageType</span><span class="p">,</span><span class="w"> </span><span class="n">GarageYrBlt</span><span class="p">,</span><span class="w"> </span><span class="n">GarageFinish</span><span class="p">,</span><span class="w"> </span><span class="n">GarageCars</span><span class="p">,</span><span class="w">
+           </span><span class="n">GarageArea</span><span class="p">,</span><span class="w"> </span><span class="n">GarageQual</span><span class="p">,</span><span class="w"> </span><span class="n">GarageCond</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">summarise</span><span class="p">(</span><span class="n">Count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="p">())</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">knitr</span><span class="o">::</span><span class="n">kable</span><span class="p">()</span><span class="w">
+</span></code></pre>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">GarageType</th>
+      <th style="text-align: right">GarageYrBlt</th>
+      <th style="text-align: left">GarageFinish</th>
+      <th style="text-align: right">GarageCars</th>
+      <th style="text-align: right">GarageArea</th>
+      <th style="text-align: left">GarageQual</th>
+      <th style="text-align: left">GarageCond</th>
+      <th style="text-align: right">Count</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Detchd</td>
+      <td style="text-align: right">NA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: right">1</td>
+      <td style="text-align: right">360</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: right">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Detchd</td>
+      <td style="text-align: right">NA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: right">NA</td>
+      <td style="text-align: right">NA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: right">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: right">NA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: right">157</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>So we have 2 cases of Detached garages, 1 with entries for GarageCars and GarageArea, and another for no other Garage entries. We also have 157 cases where there are no entries for anything, so this looks like no garage.</p>
+
+<p>We’ll fill in the “no garages” first. For the year we will use the YearBuilt</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">&lt;-</span><span class="w">
+  </span><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">transform</span><span class="p">(</span><span class="n">GarageType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">GarageType</span><span class="p">),</span><span class="w"> </span><span class="s1">'None'</span><span class="p">,</span><span class="w"> </span><span class="n">GarageType</span><span class="p">),</span><span class="w">
+            </span><span class="n">GarageYrBlt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">GarageYrBlt</span><span class="p">),</span><span class="w"> </span><span class="n">YearBuilt</span><span class="p">,</span><span class="w"> </span><span class="n">GarageYrBlt</span><span class="p">),</span><span class="w">
+            </span><span class="n">GarageFinish</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">GarageFinish</span><span class="p">),</span><span class="w"> </span><span class="s1">'None'</span><span class="p">,</span><span class="w"> </span><span class="n">GarageFinish</span><span class="p">),</span><span class="w">
+            </span><span class="n">GarageCars</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">GarageCars</span><span class="p">),</span><span class="w"> </span><span class="s1">'None'</span><span class="p">,</span><span class="w"> </span><span class="m">0</span><span class="p">),</span><span class="w">
+            </span><span class="n">GarageArea</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">GarageArea</span><span class="p">),</span><span class="w"> </span><span class="s1">'None'</span><span class="p">,</span><span class="w"> </span><span class="m">0</span><span class="p">),</span><span class="w">
+            </span><span class="n">GarageQual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">GarageQual</span><span class="p">),</span><span class="w"> </span><span class="s1">'None'</span><span class="p">,</span><span class="w"> </span><span class="n">GarageQual</span><span class="p">),</span><span class="w">
+            </span><span class="n">GarageCond</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">GarageCond</span><span class="p">),</span><span class="w"> </span><span class="s1">'None'</span><span class="p">,</span><span class="w"> </span><span class="n">GarageCond</span><span class="p">))</span><span class="w">
+</span></code></pre>
+</div>
+
+<h3 id="basements-cleaning">Basements cleaning</h3>
+
+<p>Next up, the basement. Let’s see where the null values occur</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">filter</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">BsmtQual</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w">
+           </span><span class="nf">is.na</span><span class="p">(</span><span class="n">BsmtCond</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w">
+           </span><span class="nf">is.na</span><span class="p">(</span><span class="n">BsmtExposure</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w">
+           </span><span class="nf">is.na</span><span class="p">(</span><span class="n">BsmtFinType1</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w">
+           </span><span class="nf">is.na</span><span class="p">(</span><span class="n">BsmtFinSF1</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w">
+           </span><span class="nf">is.na</span><span class="p">(</span><span class="n">BsmtFinType2</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w">
+           </span><span class="nf">is.na</span><span class="p">(</span><span class="n">BsmtFinSF2</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w"> 
+           </span><span class="nf">is.na</span><span class="p">(</span><span class="n">BsmtUnfSF</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w">
+           </span><span class="nf">is.na</span><span class="p">(</span><span class="n">BsmtFullBath</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w">
+           </span><span class="nf">is.na</span><span class="p">(</span><span class="n">BsmtHalfBath</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w">
+           </span><span class="nf">is.na</span><span class="p">(</span><span class="n">TotalBsmtSF</span><span class="p">))</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">group_by</span><span class="p">(</span><span class="n">BsmtQual</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtCond</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtExposure</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtFinType1</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtFinSF1</span><span class="p">,</span><span class="w">
+           </span><span class="n">BsmtFinType2</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtFinSF2</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtUnfSF</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtFullBath</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtHalfBath</span><span class="p">,</span><span class="w">
+           </span><span class="n">TotalBsmtSF</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">summarise</span><span class="p">(</span><span class="n">Count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="p">())</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">knitr</span><span class="o">::</span><span class="n">kable</span><span class="p">()</span><span class="w">
+</span></code></pre>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">BsmtQual</th>
+      <th style="text-align: left">BsmtCond</th>
+      <th style="text-align: left">BsmtExposure</th>
+      <th style="text-align: left">BsmtFinType1</th>
+      <th style="text-align: right">BsmtFinSF1</th>
+      <th style="text-align: left">BsmtFinType2</th>
+      <th style="text-align: right">BsmtFinSF2</th>
+      <th style="text-align: right">BsmtUnfSF</th>
+      <th style="text-align: right">BsmtFullBath</th>
+      <th style="text-align: right">BsmtHalfBath</th>
+      <th style="text-align: right">TotalBsmtSF</th>
+      <th style="text-align: right">Count</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Gd</td>
+      <td style="text-align: left">TA</td>
+      <td style="text-align: left">No</td>
+      <td style="text-align: left">GLQ</td>
+      <td style="text-align: right">1124</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: right">479</td>
+      <td style="text-align: right">1603</td>
+      <td style="text-align: right">1</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">3206</td>
+      <td style="text-align: right">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Gd</td>
+      <td style="text-align: left">TA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">Unf</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: left">Unf</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">725</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">725</td>
+      <td style="text-align: right">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Gd</td>
+      <td style="text-align: left">TA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">Unf</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: left">Unf</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">936</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">936</td>
+      <td style="text-align: right">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Gd</td>
+      <td style="text-align: left">TA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">Unf</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: left">Unf</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">1595</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">1595</td>
+      <td style="text-align: right">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Gd</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">Mn</td>
+      <td style="text-align: left">GLQ</td>
+      <td style="text-align: right">1044</td>
+      <td style="text-align: left">Rec</td>
+      <td style="text-align: right">382</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">1</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">1426</td>
+      <td style="text-align: right">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">TA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">Av</td>
+      <td style="text-align: left">ALQ</td>
+      <td style="text-align: right">755</td>
+      <td style="text-align: left">Unf</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">240</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">995</td>
+      <td style="text-align: right">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">TA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">No</td>
+      <td style="text-align: left">BLQ</td>
+      <td style="text-align: right">1033</td>
+      <td style="text-align: left">Unf</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">94</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">1</td>
+      <td style="text-align: right">1127</td>
+      <td style="text-align: right">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">Fa</td>
+      <td style="text-align: left">No</td>
+      <td style="text-align: left">Unf</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: left">Unf</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">173</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">173</td>
+      <td style="text-align: right">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">TA</td>
+      <td style="text-align: left">No</td>
+      <td style="text-align: left">Unf</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: left">Unf</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">356</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">356</td>
+      <td style="text-align: right">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">77</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">NA</td>
+      <td style="text-align: right">NA</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: right">NA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: right">NA</td>
+      <td style="text-align: right">NA</td>
+      <td style="text-align: right">NA</td>
+      <td style="text-align: right">NA</td>
+      <td style="text-align: right">NA</td>
+      <td style="text-align: right">1</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>From the above we see:</p>
+
+<ul>
+  <li>2 cases of No Basement (BsmtQual) where BsmtCond is not No Basement - takes values of Fair/Typical</li>
+  <li>These cases occur when the BsmtFinType1 is Unfinished. Square footage is positive here.</li>
+  <li>5 cases BsmtFinType2 = BsmtFinType1 which shouldn’t happen unless both are NA. Does this happen elsewhere?</li>
+  <li>Check that BsmtFinSF1 + BsmtFinSF2 + BsmtUnfSF = TotalBsmtSF</li>
+</ul>
+
+<p>First, let’s check for cases of BsmtFinType2 = BsmtFinType1 and check that total SF is correct</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">filter</span><span class="p">(</span><span class="n">BsmtFinType2</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">BsmtFinType1</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">group_by</span><span class="p">(</span><span class="n">BsmtFinType1</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtFinType2</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">summarise</span><span class="p">(</span><span class="n">BsmtFinSF1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">BsmtFinSF1</span><span class="p">),</span><span class="w">
+            </span><span class="n">BsmtFinSF2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">BsmtFinSF2</span><span class="p">),</span><span class="w">
+            </span><span class="n">BsmtUnfSF</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">BsmtUnfSF</span><span class="p">),</span><span class="w">
+            </span><span class="n">TotalBsmtSF</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">TotalBsmtSF</span><span class="p">),</span><span class="w">
+            </span><span class="n">ChkTotal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">BsmtFinSF1</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">BsmtFinSF2</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">BsmtUnfSF</span><span class="p">))</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">knitr</span><span class="o">::</span><span class="n">kable</span><span class="p">()</span><span class="w">
+</span></code></pre>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">BsmtFinType1</th>
+      <th style="text-align: left">BsmtFinType2</th>
+      <th style="text-align: right">BsmtFinSF1</th>
+      <th style="text-align: right">BsmtFinSF2</th>
+      <th style="text-align: right">BsmtUnfSF</th>
+      <th style="text-align: right">TotalBsmtSF</th>
+      <th style="text-align: right">ChkTotal</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">BLQ</td>
+      <td style="text-align: left">BLQ</td>
+      <td style="text-align: right">543</td>
+      <td style="text-align: right">119</td>
+      <td style="text-align: right">261</td>
+      <td style="text-align: right">923</td>
+      <td style="text-align: right">923</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Unf</td>
+      <td style="text-align: left">Unf</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">826432</td>
+      <td style="text-align: right">826432</td>
+      <td style="text-align: right">826432</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The check passed, so let’s set BsmtFinType2 to NA, BsmtFinSF1 to BsmtFinSF1 + BsmtFinSF2, and BsmtFinSF2 to 0.</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">&lt;-</span><span class="w">
+  </span><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">transform</span><span class="p">(</span><span class="n">BsmtFinType2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="n">BsmtFinType2</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">BsmtFinType1</span><span class="p">,</span><span class="w"> </span><span class="kc">NA</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtFinType2</span><span class="p">),</span><span class="w">
+            </span><span class="n">BsmtFinSF1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="n">BsmtFinType2</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">BsmtFinType1</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtFinSF1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">BsmtFinSF2</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtFinSF1</span><span class="p">),</span><span class="w">
+            </span><span class="n">BsmtFinSF2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="n">BsmtFinType2</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">BsmtFinType1</span><span class="p">,</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtFinSF2</span><span class="p">))</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>Let’s check across the dataset that the total basement SF is correct:</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">filter</span><span class="p">(</span><span class="n">TotalBsmtSF</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">BsmtFinSF1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">BsmtFinSF2</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">BsmtUnfSF</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">summarise</span><span class="p">(</span><span class="n">Count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="p">())</span><span class="w">
+</span></code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>##   Count
+## 1     0
+</code></pre>
+</div>
+
+<p>All good then. Let’s perform the updates:</p>
+
+<ul>
+  <li>Rows 2-4 BsmtExposure indicate No Basement, however this should be No Exposure</li>
+  <li>One row of 77 cases of completely null values - let’s fill these with the default null values</li>
+  <li>Rows 8,9 fill in BsmtQual with ‘TA’</li>
+  <li>Rows 2-4 BsmtFinType2 set to NA, then convert all NA’s to ‘None’</li>
+  <li>NA’s in BsmtFinSF1, BsmtFinSF2, BsmtUnfSF, TotalBsmtSF, BsmtFullBath, BsmtHalfBath should be 0</li>
+  <li>NA’s in BsmtQual, BsmtCond, BsmtExposure, BsmtFinType1, BsmtFinType2 should be ‘None’</li>
+</ul>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">&lt;-</span><span class="w">
+  </span><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">mutate</span><span class="p">(</span><span class="n">BsmtExposure</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">BsmtExposure</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">BsmtQual</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">'Gd'</span><span class="p">,</span><span class="w"> </span><span class="s1">'No'</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtExposure</span><span class="p">),</span><span class="w">
+         </span><span class="n">BsmtFinType2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">BsmtExposure</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">BsmtQual</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">'Gd'</span><span class="p">,</span><span class="w"> </span><span class="kc">NA</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtFinType2</span><span class="p">),</span><span class="w">
+         
+         </span><span class="n">BsmtFinSF1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">BsmtFinSF1</span><span class="p">),</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtFinSF1</span><span class="p">),</span><span class="w">
+         </span><span class="n">BsmtFinSF2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">BsmtFinSF2</span><span class="p">),</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtFinSF2</span><span class="p">),</span><span class="w">
+         </span><span class="n">BsmtUnfSF</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">BsmtUnfSF</span><span class="p">),</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtUnfSF</span><span class="p">),</span><span class="w">
+         </span><span class="n">TotalBsmtSF</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">TotalBsmtSF</span><span class="p">),</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">TotalBsmtSF</span><span class="p">),</span><span class="w">
+         </span><span class="n">BsmtFullBath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">BsmtFullBath</span><span class="p">),</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtFullBath</span><span class="p">),</span><span class="w">
+         </span><span class="n">BsmtHalfBath</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">BsmtHalfBath</span><span class="p">),</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtHalfBath</span><span class="p">),</span><span class="w">
+         
+         </span><span class="n">BsmtQual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">BsmtQual</span><span class="p">),</span><span class="w"> </span><span class="s1">'None'</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtQual</span><span class="p">),</span><span class="w">
+         </span><span class="n">BsmtCond</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">BsmtCond</span><span class="p">),</span><span class="w"> </span><span class="s1">'None'</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtCond</span><span class="p">),</span><span class="w">
+         </span><span class="n">BsmtExposure</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">BsmtExposure</span><span class="p">),</span><span class="w"> </span><span class="s1">'None'</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtExposure</span><span class="p">),</span><span class="w">
+         </span><span class="n">BsmtFinType1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">BsmtFinType1</span><span class="p">),</span><span class="w"> </span><span class="s1">'None'</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtFinType1</span><span class="p">),</span><span class="w">
+         </span><span class="n">BsmtFinType2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">BsmtFinType2</span><span class="p">),</span><span class="w"> </span><span class="s1">'None'</span><span class="p">,</span><span class="w"> </span><span class="n">BsmtFinType2</span><span class="p">))</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>Now what’s left to fill in?</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> 
+  </span><span class="n">select</span><span class="p">(</span><span class="n">which</span><span class="p">(</span><span class="n">sapply</span><span class="p">(</span><span class="n">full</span><span class="p">,</span><span class="w"> </span><span class="k">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="nf">any</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">x</span><span class="p">)))))</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">sapply</span><span class="p">(</span><span class="k">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="nf">sum</span><span class="p">(</span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">x</span><span class="p">),</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">0</span><span class="p">)))</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">sort</span><span class="p">(</span><span class="n">decreasing</span><span class="o">=</span><span class="nb">T</span><span class="p">)</span><span class="w">
+</span></code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>##       Alley       Fence  MasVnrType  MasVnrArea    MSZoning   Utilities 
+##        2721        2348          24          23           4           2 
+##  Functional Exterior1st Exterior2nd  Electrical KitchenQual    SaleType 
+##           2           1           1           1           1           1
+</code></pre>
+</div>
+
+<h3 id="alley-and-fence">Alley and fence</h3>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">group_by</span><span class="p">(</span><span class="n">Alley</span><span class="p">,</span><span class="w"> </span><span class="n">Fence</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">summarise</span><span class="p">(</span><span class="n">Count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="p">())</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">knitr</span><span class="o">::</span><span class="n">kable</span><span class="p">()</span><span class="w">
+</span></code></pre>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Alley</th>
+      <th style="text-align: left">Fence</th>
+      <th style="text-align: right">Count</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Grvl</td>
+      <td style="text-align: left">GdPrv</td>
+      <td style="text-align: right">5</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Grvl</td>
+      <td style="text-align: left">GdWo</td>
+      <td style="text-align: right">4</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Grvl</td>
+      <td style="text-align: left">MnPrv</td>
+      <td style="text-align: right">19</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Grvl</td>
+      <td style="text-align: left">MnWw</td>
+      <td style="text-align: right">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Grvl</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: right">91</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Pave</td>
+      <td style="text-align: left">GdPrv</td>
+      <td style="text-align: right">3</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Pave</td>
+      <td style="text-align: left">GdWo</td>
+      <td style="text-align: right">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Pave</td>
+      <td style="text-align: left">MnPrv</td>
+      <td style="text-align: right">2</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Pave</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: right">72</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">GdPrv</td>
+      <td style="text-align: right">110</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">GdWo</td>
+      <td style="text-align: right">107</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">MnPrv</td>
+      <td style="text-align: right">308</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">MnWw</td>
+      <td style="text-align: right">11</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: right">2185</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>NA means ‘no alley access’ or ‘no fence’ so let’s fill that with ‘None’</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">&lt;-</span><span class="w">
+  </span><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">mutate</span><span class="p">(</span><span class="n">Alley</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">Alley</span><span class="p">),</span><span class="w"> </span><span class="s1">'None'</span><span class="p">,</span><span class="w"> </span><span class="n">Alley</span><span class="p">),</span><span class="w">
+         </span><span class="n">Fence</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">Fence</span><span class="p">),</span><span class="w"> </span><span class="s1">'None'</span><span class="p">,</span><span class="w"> </span><span class="n">Fence</span><span class="p">))</span><span class="w">
+</span></code></pre>
+</div>
+
+<h3 id="mason-veneer">Mason veneer</h3>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">group_by</span><span class="p">(</span><span class="n">MasVnrType</span><span class="p">,</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">MasVnrArea</span><span class="p">),</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">))</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">summarise</span><span class="p">(</span><span class="n">Count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="p">())</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">knitr</span><span class="o">::</span><span class="n">kable</span><span class="p">()</span><span class="w">
+</span></code></pre>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">MasVnrType</th>
+      <th style="text-align: right">ifelse(is.na(MasVnrArea), 0, 1)</th>
+      <th style="text-align: right">Count</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">BrkCmn</td>
+      <td style="text-align: right">1</td>
+      <td style="text-align: right">25</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">BrkFace</td>
+      <td style="text-align: right">1</td>
+      <td style="text-align: right">879</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">None</td>
+      <td style="text-align: right">1</td>
+      <td style="text-align: right">1742</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Stone</td>
+      <td style="text-align: right">1</td>
+      <td style="text-align: right">249</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: right">0</td>
+      <td style="text-align: right">23</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: right">1</td>
+      <td style="text-align: right">1</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Fill this in:</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">&lt;-</span><span class="w">
+  </span><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">mutate</span><span class="p">(</span><span class="n">MasVnrType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">MasVnrType</span><span class="p">),</span><span class="w"> </span><span class="s1">'None'</span><span class="p">,</span><span class="w"> </span><span class="n">MasVnrType</span><span class="p">),</span><span class="w">
+         </span><span class="n">MasVnrArea</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">MasVnrArea</span><span class="p">),</span><span class="w"> </span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="n">MasVnrArea</span><span class="p">))</span><span class="w">
+</span></code></pre>
+</div>
+
+<h3 id="mszoning">MSZoning</h3>
+
+<p>Getting the distribution of MSZoning, we see there are 4 NA’s here:</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">group_by</span><span class="p">(</span><span class="n">MSZoning</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">summarise</span><span class="p">(</span><span class="n">Count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="p">())</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">knitr</span><span class="o">::</span><span class="n">kable</span><span class="p">()</span><span class="w">
+</span></code></pre>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">MSZoning</th>
+      <th style="text-align: right">Count</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">C (all)</td>
+      <td style="text-align: right">25</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">FV</td>
+      <td style="text-align: right">139</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RH</td>
+      <td style="text-align: right">26</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RL</td>
+      <td style="text-align: right">2265</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RM</td>
+      <td style="text-align: right">460</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: right">4</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Now, let’s see what the most common value of MSZoning is per MSSubClass, and select only the MSSubClass where MSZoning is NA.</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">Mode</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="k">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+  </span><span class="n">ux</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">unique</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w">
+  </span><span class="n">ux</span><span class="p">[</span><span class="n">which.max</span><span class="p">(</span><span class="n">tabulate</span><span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">ux</span><span class="p">)))]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+
+</span><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">group_by</span><span class="p">(</span><span class="n">MSSubClass</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">summarise</span><span class="p">(</span><span class="n">AvgZoning</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Mode</span><span class="p">(</span><span class="n">MSZoning</span><span class="p">))</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">inner_join</span><span class="p">(</span><span class="w">
+    </span><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+      </span><span class="n">filter</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">MSZoning</span><span class="p">))</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+      </span><span class="n">distinct</span><span class="p">(),</span><span class="w">
+    </span><span class="n">by</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"MSSubClass"</span><span class="w">
+  </span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">select</span><span class="p">(</span><span class="n">MSSubClass</span><span class="p">,</span><span class="w"> </span><span class="n">AvgZoning</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">distinct</span><span class="p">()</span><span class="w">
+</span></code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>## # A tibble: 3 × 2
+##   MSSubClass AvgZoning
+##        &lt;int&gt;     &lt;chr&gt;
+## 1         20        RL
+## 2         30        RM
+## 3         70        RM
+</code></pre>
+</div>
+
+<p>Let’s update the values with this:</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">&lt;-</span><span class="w">
+  </span><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">mutate</span><span class="p">(</span><span class="n">MSZoning</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">MSZoning</span><span class="p">),</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="n">MSSubClass</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">20</span><span class="p">,</span><span class="w"> </span><span class="s1">'RL'</span><span class="p">,</span><span class="w"> </span><span class="s1">'RM'</span><span class="p">),</span><span class="w"> </span><span class="n">MSZoning</span><span class="p">))</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>Utilities Functional Exterior1st Exterior2nd Electrical KitchenQual SaleType</p>
+
+<h3 id="the-rest">The rest</h3>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">filter</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">Utilities</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w">
+           </span><span class="nf">is.na</span><span class="p">(</span><span class="n">Functional</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w">
+           </span><span class="nf">is.na</span><span class="p">(</span><span class="n">Exterior1st</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w">
+           </span><span class="nf">is.na</span><span class="p">(</span><span class="n">Exterior2nd</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w">
+           </span><span class="nf">is.na</span><span class="p">(</span><span class="n">Electrical</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w">
+           </span><span class="nf">is.na</span><span class="p">(</span><span class="n">KitchenQual</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w">
+           </span><span class="nf">is.na</span><span class="p">(</span><span class="n">SaleType</span><span class="p">))</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">group_by</span><span class="p">(</span><span class="n">Utilities</span><span class="p">,</span><span class="w"> </span><span class="n">Functional</span><span class="p">,</span><span class="w"> </span><span class="n">Exterior1st</span><span class="p">,</span><span class="w"> </span><span class="n">Exterior2nd</span><span class="p">,</span><span class="w"> </span><span class="n">Electrical</span><span class="p">,</span><span class="w"> </span><span class="n">KitchenQual</span><span class="p">,</span><span class="w"> </span><span class="n">SaleType</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">summarise</span><span class="p">(</span><span class="n">Count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="p">())</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">knitr</span><span class="o">::</span><span class="n">kable</span><span class="p">()</span><span class="w">
+</span></code></pre>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Utilities</th>
+      <th style="text-align: left">Functional</th>
+      <th style="text-align: left">Exterior1st</th>
+      <th style="text-align: left">Exterior2nd</th>
+      <th style="text-align: left">Electrical</th>
+      <th style="text-align: left">KitchenQual</th>
+      <th style="text-align: left">SaleType</th>
+      <th style="text-align: right">Count</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">AllPub</td>
+      <td style="text-align: left">Mod</td>
+      <td style="text-align: left">Wd Sdng</td>
+      <td style="text-align: left">Wd Sdng</td>
+      <td style="text-align: left">SBrkr</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">COD</td>
+      <td style="text-align: right">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">AllPub</td>
+      <td style="text-align: left">Typ</td>
+      <td style="text-align: left">Plywood</td>
+      <td style="text-align: left">Plywood</td>
+      <td style="text-align: left">SBrkr</td>
+      <td style="text-align: left">TA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: right">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">AllPub</td>
+      <td style="text-align: left">Typ</td>
+      <td style="text-align: left">VinylSd</td>
+      <td style="text-align: left">VinylSd</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">Gd</td>
+      <td style="text-align: left">WD</td>
+      <td style="text-align: right">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">AllPub</td>
+      <td style="text-align: left">Typ</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">SBrkr</td>
+      <td style="text-align: left">Fa</td>
+      <td style="text-align: left">WD</td>
+      <td style="text-align: right">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">AllPub</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">AsbShng</td>
+      <td style="text-align: left">VinylSd</td>
+      <td style="text-align: left">FuseA</td>
+      <td style="text-align: left">Fa</td>
+      <td style="text-align: left">WD</td>
+      <td style="text-align: right">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">AllPub</td>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">Wd Sdng</td>
+      <td style="text-align: left">Wd Sdng</td>
+      <td style="text-align: left">SBrkr</td>
+      <td style="text-align: left">TA</td>
+      <td style="text-align: left">COD</td>
+      <td style="text-align: right">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">Min1</td>
+      <td style="text-align: left">Wd Sdng</td>
+      <td style="text-align: left">Wd Sdng</td>
+      <td style="text-align: left">FuseA</td>
+      <td style="text-align: left">TA</td>
+      <td style="text-align: left">ConLD</td>
+      <td style="text-align: right">1</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">NA</td>
+      <td style="text-align: left">Min2</td>
+      <td style="text-align: left">BrkFace</td>
+      <td style="text-align: left">BrkFace</td>
+      <td style="text-align: left">FuseA</td>
+      <td style="text-align: left">TA</td>
+      <td style="text-align: left">WD</td>
+      <td style="text-align: right">1</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Let’s fill the rest in with the most common value</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">full</span><span class="w"> </span><span class="o">&lt;-</span><span class="w">
+  </span><span class="n">full</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">mutate</span><span class="p">(</span><span class="n">Utilities</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">Utilities</span><span class="p">),</span><span class="w"> </span><span class="n">Mode</span><span class="p">(</span><span class="n">Utilities</span><span class="p">),</span><span class="w"> </span><span class="n">Utilities</span><span class="p">),</span><span class="w">
+         </span><span class="n">Functional</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">Functional</span><span class="p">),</span><span class="w"> </span><span class="n">Mode</span><span class="p">(</span><span class="n">Functional</span><span class="p">),</span><span class="w"> </span><span class="n">Functional</span><span class="p">),</span><span class="w">
+         </span><span class="n">Exterior1st</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">Exterior1st</span><span class="p">),</span><span class="w"> </span><span class="n">Mode</span><span class="p">(</span><span class="n">Exterior1st</span><span class="p">),</span><span class="w"> </span><span class="n">Exterior1st</span><span class="p">),</span><span class="w">
+         </span><span class="n">Exterior2nd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">Exterior2nd</span><span class="p">),</span><span class="w"> </span><span class="n">Mode</span><span class="p">(</span><span class="n">Exterior2nd</span><span class="p">),</span><span class="w"> </span><span class="n">Exterior2nd</span><span class="p">),</span><span class="w">
+         </span><span class="n">Electrical</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">Electrical</span><span class="p">),</span><span class="w"> </span><span class="n">Mode</span><span class="p">(</span><span class="n">Electrical</span><span class="p">),</span><span class="w"> </span><span class="n">Electrical</span><span class="p">),</span><span class="w">
+         </span><span class="n">KitchenQual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">KitchenQual</span><span class="p">),</span><span class="w"> </span><span class="n">Mode</span><span class="p">(</span><span class="n">KitchenQual</span><span class="p">),</span><span class="w"> </span><span class="n">KitchenQual</span><span class="p">),</span><span class="w">
+         </span><span class="n">SaleType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ifelse</span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">SaleType</span><span class="p">),</span><span class="w"> </span><span class="n">Mode</span><span class="p">(</span><span class="n">SaleType</span><span class="p">),</span><span class="w"> </span><span class="n">SaleType</span><span class="p">))</span><span class="w">
+</span></code></pre>
+</div>
+
+<h3 id="update-the-train-and-test-data">Update the train and test data</h3>
+
+<p>Now that we have fixed the missing values in the train and test data, we may update the original datasets so that we are ready to begin the analysis.</p>
+
+<div class="language-r highlighter-rouge"><pre class="highlight"><code><span class="n">t</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">nrow</span><span class="p">(</span><span class="n">train</span><span class="p">)</span><span class="w">
+</span><span class="n">f</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">nrow</span><span class="p">(</span><span class="n">full</span><span class="p">)</span><span class="w">
+
+</span><span class="n">train</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">full</span><span class="p">[</span><span class="m">1</span><span class="o">:</span><span class="n">t</span><span class="p">,]</span><span class="w">
+</span><span class="n">test</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">full</span><span class="p">[</span><span class="n">t</span><span class="m">+1</span><span class="o">:</span><span class="n">f</span><span class="p">,]</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>We are now ready to do some exploratory analysis.</p>
+
+    <hr>
+    <div class="pagination">
+      <ul>
+      
+        <li class="prev disabled"><a>&larr; Previous</a></li>
+      
+        <li><a href="">Archive</a></li>
+      
+        <li class="next disabled"><a>Next &rarr;</a>
+      
+      </ul>
+    </div>
+    <hr>
+    
+  </div>
+  
+  <div class="span4">
+    <h4>Published</h4>
+    <div class="date"><span>17 April 2016</span></div>
+
+  
+    <h4>Tags</h4>
+    <ul class="tag_box">
+    
+    
+
+
+  
+     
+    	<li><a href="#kaggle-ref">kaggle <span>1</span></a></li>
+    
+  
+
+
+
+    </ul>
+    
+  </div>
+</div>
+
+
+      </div>
+
+      <footer>
+        <p>&copy;  2012 
+          with help from <a href="http://jekyllbootstrap.com" target="_blank" title="The Definitive Jekyll Blogging Framework">Jekyll Bootstrap</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    
+
+
+
+  </body>
+</html>
+
