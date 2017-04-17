@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
-<loc>http://localhost:4000/rblogging/2016/04/17/house_prices_part_1</loc>
-<lastmod>2016-04-17T00:00:00+01:00</lastmod>
-</url>
-<url>
-<loc>http://localhost:4000/rblogging/2017/04/10/explore</loc>
-<lastmod>2017-04-10T00:00:00+01:00</lastmod>
+<loc>http://localhost:4000/rblogging/2017/04/17/house_prices_part_1</loc>
+<lastmod>2017-04-17T00:00:00+01:00</lastmod>
 </url>
 <url>
 <loc>http://localhost:4000/CopyOfindex</loc>
@@ -32,9 +28,5 @@
 <url>
 <loc>http://localhost:4000/404.html</loc>
 <lastmod>2017-04-17T15:56:07+01:00</lastmod>
-</url>
-<url>
-<loc>http://localhost:4000/rblogging/2017/04/10/explore.html</loc>
-<lastmod>2017-04-17T15:56:08+01:00</lastmod>
 </url>
 </urlset>

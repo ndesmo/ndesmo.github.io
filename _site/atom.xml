@@ -4,7 +4,7 @@
  <title>Jekyll Bootstrap</title>
  <link href="http://username.github.io/atom.xml" rel="self"/>
  <link href="http://username.github.io"/>
- <updated>2017-04-17T15:56:18+01:00</updated>
+ <updated>2017-04-17T16:02:10+01:00</updated>
  <id>http://username.github.io</id>
  <author>
    <name>Name Lastname</name>
@@ -13,129 +13,10 @@
 
  
  <entry>
-   <title>House prices: data exploration</title>
-   <link href="http://username.github.io/rblogging/2017/04/10/explore"/>
-   <updated>2017-04-10T00:00:00+01:00</updated>
-   <id>http://username.github.io/rblogging/2017/04/10/explore</id>
-   <content type="html">&lt;h2 id=&quot;overview&quot;&gt;Overview&lt;/h2&gt;
-
-&lt;p&gt;In this post I will be doing simple exploratory data analysis of the &lt;a href=&quot;https://ww2.amstat.org/publications/jse/v19n3/decock.pdf&quot;&gt;Ames Housing dataset&lt;/a&gt; used in the Kaggle competition &lt;a href=&quot;https://www.kaggle.com/c/house-prices-advanced-regression-techniques&quot;&gt;House Prices: Advanced Regression Techniques&lt;/a&gt;. This is my first blog post here so it’s also an exercise in creating blog posts!&lt;/p&gt;
-
-&lt;h3 id=&quot;aims&quot;&gt;Aims&lt;/h3&gt;
-
-&lt;p&gt;The problem is to try to correctly predict the house prices in the test dataset by training a regression model on the training data. The dataset to be submitted to Kaggle will have the following form:&lt;/p&gt;
-
-&lt;table&gt;
-  &lt;thead&gt;
-    &lt;tr&gt;
-      &lt;th style=&quot;text-align: right&quot;&gt;Id&lt;/th&gt;
-      &lt;th style=&quot;text-align: right&quot;&gt;SalePrice&lt;/th&gt;
-    &lt;/tr&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td style=&quot;text-align: right&quot;&gt;1461&lt;/td&gt;
-      &lt;td style=&quot;text-align: right&quot;&gt;169277.1&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td style=&quot;text-align: right&quot;&gt;1462&lt;/td&gt;
-      &lt;td style=&quot;text-align: right&quot;&gt;187758.4&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td style=&quot;text-align: right&quot;&gt;1463&lt;/td&gt;
-      &lt;td style=&quot;text-align: right&quot;&gt;183583.7&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td style=&quot;text-align: right&quot;&gt;1464&lt;/td&gt;
-      &lt;td style=&quot;text-align: right&quot;&gt;179317.5&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td style=&quot;text-align: right&quot;&gt;1465&lt;/td&gt;
-      &lt;td style=&quot;text-align: right&quot;&gt;150730.1&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td style=&quot;text-align: right&quot;&gt;1466&lt;/td&gt;
-      &lt;td style=&quot;text-align: right&quot;&gt;177151.0&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;h2 id=&quot;analysis&quot;&gt;Analysis&lt;/h2&gt;
-
-&lt;p&gt;Here I will provide a simple exploratory analysis of the training data. In subsequent posts, I will go into developing the model.&lt;/p&gt;
-
-&lt;h3 id=&quot;columns&quot;&gt;Columns&lt;/h3&gt;
-
-&lt;p&gt;Here are the columns available in the dataset:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;names(train)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;pre&gt;&lt;code&gt;##  [1] &quot;Id&quot;            &quot;MSSubClass&quot;    &quot;MSZoning&quot;      &quot;LotFrontage&quot;  
-##  [5] &quot;LotArea&quot;       &quot;Street&quot;        &quot;Alley&quot;         &quot;LotShape&quot;     
-##  [9] &quot;LandContour&quot;   &quot;Utilities&quot;     &quot;LotConfig&quot;     &quot;LandSlope&quot;    
-## [13] &quot;Neighborhood&quot;  &quot;Condition1&quot;    &quot;Condition2&quot;    &quot;BldgType&quot;     
-## [17] &quot;HouseStyle&quot;    &quot;OverallQual&quot;   &quot;OverallCond&quot;   &quot;YearBuilt&quot;    
-## [21] &quot;YearRemodAdd&quot;  &quot;RoofStyle&quot;     &quot;RoofMatl&quot;      &quot;Exterior1st&quot;  
-## [25] &quot;Exterior2nd&quot;   &quot;MasVnrType&quot;    &quot;MasVnrArea&quot;    &quot;ExterQual&quot;    
-## [29] &quot;ExterCond&quot;     &quot;Foundation&quot;    &quot;BsmtQual&quot;      &quot;BsmtCond&quot;     
-## [33] &quot;BsmtExposure&quot;  &quot;BsmtFinType1&quot;  &quot;BsmtFinSF1&quot;    &quot;BsmtFinType2&quot; 
-## [37] &quot;BsmtFinSF2&quot;    &quot;BsmtUnfSF&quot;     &quot;TotalBsmtSF&quot;   &quot;Heating&quot;      
-## [41] &quot;HeatingQC&quot;     &quot;CentralAir&quot;    &quot;Electrical&quot;    &quot;X1stFlrSF&quot;    
-## [45] &quot;X2ndFlrSF&quot;     &quot;LowQualFinSF&quot;  &quot;GrLivArea&quot;     &quot;BsmtFullBath&quot; 
-## [49] &quot;BsmtHalfBath&quot;  &quot;FullBath&quot;      &quot;HalfBath&quot;      &quot;BedroomAbvGr&quot; 
-## [53] &quot;KitchenAbvGr&quot;  &quot;KitchenQual&quot;   &quot;TotRmsAbvGrd&quot;  &quot;Functional&quot;   
-## [57] &quot;Fireplaces&quot;    &quot;FireplaceQu&quot;   &quot;GarageType&quot;    &quot;GarageYrBlt&quot;  
-## [61] &quot;GarageFinish&quot;  &quot;GarageCars&quot;    &quot;GarageArea&quot;    &quot;GarageQual&quot;   
-## [65] &quot;GarageCond&quot;    &quot;PavedDrive&quot;    &quot;WoodDeckSF&quot;    &quot;OpenPorchSF&quot;  
-## [69] &quot;EnclosedPorch&quot; &quot;X3SsnPorch&quot;    &quot;ScreenPorch&quot;   &quot;PoolArea&quot;     
-## [73] &quot;PoolQC&quot;        &quot;Fence&quot;         &quot;MiscFeature&quot;   &quot;MiscVal&quot;      
-## [77] &quot;MoSold&quot;        &quot;YrSold&quot;        &quot;SaleType&quot;      &quot;SaleCondition&quot;
-## [81] &quot;SalePrice&quot;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;The last column “SalePrice” is the one we will be measuring. There are 80 other features that we should try to make use of to predict SalePrice.&lt;/p&gt;
-
-&lt;h3 id=&quot;distribution-of-house-prices&quot;&gt;Distribution of house prices&lt;/h3&gt;
-
-&lt;p&gt;First things first, let’s look at how the house prices are distributed.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;sp &amp;lt;- train %&amp;gt;% select(SalePrice)
-ggplot(sp, aes(SalePrice, fill='1')) + geom_histogram() + guides(fill=FALSE)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;pre&gt;&lt;code&gt;## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;img src=&quot;explore_files/figure-markdown_github/house-prices-1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;We can see that the distribution is not normal. It has a positive skew.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;sp %&amp;gt;% summarise(Skewness = skewness(SalePrice), Kurtosis = kurtosis(SalePrice))
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;pre&gt;&lt;code&gt;##   Skewness Kurtosis
-## 1 1.880941 9.509812
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3 id=&quot;feature-correlation&quot;&gt;Feature correlation&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;corrdata &amp;lt;- train %&amp;gt;% select(which(sapply(.,is.numeric)))
-qplot(x=Var1, y=Var2, data=melt(cor(corrdata, use=&quot;p&quot;)), fill=value, geom=&quot;tile&quot;) +
-  scale_fill_gradient2(limits=c(-1, 1)) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  labs(x = 'Features', y = 'Features')
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;img src=&quot;explore_files/figure-markdown_github/corr-heatmap-1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-</content>
- </entry>
- 
- <entry>
    <title>House prices: part one</title>
-   <link href="http://username.github.io/rblogging/2016/04/17/house_prices_part_1"/>
-   <updated>2016-04-17T00:00:00+01:00</updated>
-   <id>http://username.github.io/rblogging/2016/04/17/house_prices_part_1</id>
+   <link href="http://username.github.io/rblogging/2017/04/17/house_prices_part_1"/>
+   <updated>2017-04-17T00:00:00+01:00</updated>
+   <id>http://username.github.io/rblogging/2017/04/17/house_prices_part_1</id>
    <content type="html">&lt;h2 id=&quot;overview&quot;&gt;Overview&lt;/h2&gt;
 
 &lt;p&gt;In the following few posts I will be doing simple exploratory data analysis of the &lt;a href=&quot;https://ww2.amstat.org/publications/jse/v19n3/decock.pdf&quot;&gt;Ames Housing dataset&lt;/a&gt; used in the Kaggle competition &lt;a href=&quot;https://www.kaggle.com/c/house-prices-advanced-regression-techniques&quot;&gt;House Prices: Advanced Regression Techniques&lt;/a&gt;. In later posts, I will go on to run statistical models on the data. This is my first blog post here so it’s also an exercise in creating blog posts!&lt;/p&gt;
