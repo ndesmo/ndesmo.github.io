@@ -4,7 +4,7 @@
  <title>Jekyll Bootstrap</title>
  <link href="http://username.github.io/atom.xml" rel="self"/>
  <link href="http://username.github.io"/>
- <updated>2017-04-17T16:04:07+01:00</updated>
+ <updated>2017-04-17T23:42:24+01:00</updated>
  <id>http://username.github.io</id>
  <author>
    <name>Name Lastname</name>
@@ -1031,8 +1031,12 @@ full %&amp;gt;%
 &lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;t &amp;lt;- nrow(train)
 f &amp;lt;- nrow(full)
 
+SP &amp;lt;- train$SalePrice
+
 train &amp;lt;- full[1:t,]
 test &amp;lt;- full[t+1:f,]
+
+train$SalePrice &amp;lt;- SP
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;We are now ready to do some exploratory analysis.&lt;/p&gt;

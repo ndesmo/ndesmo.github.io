@@ -424,8 +424,12 @@ Now that we have fixed the missing values in the train and test data, we may upd
 t <- nrow(train)
 f <- nrow(full)
 
+SP <- train$SalePrice
+
 train <- full[1:t,]
 test <- full[t+1:f,]
+
+train$SalePrice <- SP
 ```
 
 We are now ready to do some exploratory analysis.

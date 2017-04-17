@@ -4,6 +4,7 @@ title: 'House prices: part one'
 date: 2017-04-17
 categories: rblogging
 tags: kaggle
+comments: true
 ---
 
 Overview
@@ -587,8 +588,12 @@ Now that we have fixed the missing values in the train and test data, we may upd
 t <- nrow(train)
 f <- nrow(full)
 
+SP <- train$SalePrice
+
 train <- full[1:t,]
 test <- full[t+1:f,]
+
+train$SalePrice <- SP
 ```
 
 We are now ready to do some exploratory analysis.

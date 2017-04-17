@@ -1136,8 +1136,12 @@ full %&gt;%
 <pre><code class="language-r">t &lt;- nrow(train)
 f &lt;- nrow(full)
 
+SP &lt;- train$SalePrice
+
 train &lt;- full[1:t,]
 test &lt;- full[t+1:f,]
+
+train$SalePrice &lt;- SP
 </code></pre>
 
 <p>We are now ready to do some exploratory analysis.</p>

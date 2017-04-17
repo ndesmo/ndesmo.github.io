@@ -1136,8 +1136,12 @@ full %&gt;%
 <pre><code class="language-r">t &lt;- nrow(train)
 f &lt;- nrow(full)
 
+SP &lt;- train$SalePrice
+
 train &lt;- full[1:t,]
 test &lt;- full[t+1:f,]
+
+train$SalePrice &lt;- SP
 </code></pre>
 
 <p>We are now ready to do some exploratory analysis.</p>
@@ -1181,7 +1185,7 @@ test &lt;- full[t+1:f,]
   
   <div class="span4">
     <h4>Published</h4>
-    <div class="date"><span>17 April 2016</span></div>
+    <div class="date"><span>17 April 2017</span></div>
 
   
     <h4>Tags</h4>

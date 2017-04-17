@@ -5,8 +5,8 @@
         <description>Jekyll Bootstrap - Name Lastname</description>
         <link>http://username.github.io</link>
         <atom:link href="http://username.github.io/rss.xml" rel="self" type="application/rss+xml" />
-        <lastBuildDate>Mon, 17 Apr 2017 16:04:07 +0100</lastBuildDate>
-        <pubDate>Mon, 17 Apr 2017 16:04:07 +0100</pubDate>
+        <lastBuildDate>Mon, 17 Apr 2017 23:42:24 +0100</lastBuildDate>
+        <pubDate>Mon, 17 Apr 2017 23:42:24 +0100</pubDate>
         <ttl>60</ttl>
 
 
@@ -1026,8 +1026,12 @@ full %&amp;gt;%
 &lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;t &amp;lt;- nrow(train)
 f &amp;lt;- nrow(full)
 
+SP &amp;lt;- train$SalePrice
+
 train &amp;lt;- full[1:t,]
 test &amp;lt;- full[t+1:f,]
+
+train$SalePrice &amp;lt;- SP
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;We are now ready to do some exploratory analysis.&lt;/p&gt;
