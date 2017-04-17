@@ -1,0 +1,1162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+ 
+ <title>Jekyll Bootstrap</title>
+ <link href="http://username.github.io/atom.xml" rel="self"/>
+ <link href="http://username.github.io"/>
+ <updated>2017-04-17T15:56:18+01:00</updated>
+ <id>http://username.github.io</id>
+ <author>
+   <name>Name Lastname</name>
+   <email>blah@email.test</email>
+ </author>
+
+ 
+ <entry>
+   <title>House prices: data exploration</title>
+   <link href="http://username.github.io/rblogging/2017/04/10/explore"/>
+   <updated>2017-04-10T00:00:00+01:00</updated>
+   <id>http://username.github.io/rblogging/2017/04/10/explore</id>
+   <content type="html">&lt;h2 id=&quot;overview&quot;&gt;Overview&lt;/h2&gt;
+
+&lt;p&gt;In this post I will be doing simple exploratory data analysis of the &lt;a href=&quot;https://ww2.amstat.org/publications/jse/v19n3/decock.pdf&quot;&gt;Ames Housing dataset&lt;/a&gt; used in the Kaggle competition &lt;a href=&quot;https://www.kaggle.com/c/house-prices-advanced-regression-techniques&quot;&gt;House Prices: Advanced Regression Techniques&lt;/a&gt;. This is my first blog post here so it’s also an exercise in creating blog posts!&lt;/p&gt;
+
+&lt;h3 id=&quot;aims&quot;&gt;Aims&lt;/h3&gt;
+
+&lt;p&gt;The problem is to try to correctly predict the house prices in the test dataset by training a regression model on the training data. The dataset to be submitted to Kaggle will have the following form:&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;Id&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;SalePrice&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1461&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;169277.1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1462&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;187758.4&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1463&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;183583.7&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1464&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;179317.5&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1465&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;150730.1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1466&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;177151.0&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2 id=&quot;analysis&quot;&gt;Analysis&lt;/h2&gt;
+
+&lt;p&gt;Here I will provide a simple exploratory analysis of the training data. In subsequent posts, I will go into developing the model.&lt;/p&gt;
+
+&lt;h3 id=&quot;columns&quot;&gt;Columns&lt;/h3&gt;
+
+&lt;p&gt;Here are the columns available in the dataset:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;names(train)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;##  [1] &quot;Id&quot;            &quot;MSSubClass&quot;    &quot;MSZoning&quot;      &quot;LotFrontage&quot;  
+##  [5] &quot;LotArea&quot;       &quot;Street&quot;        &quot;Alley&quot;         &quot;LotShape&quot;     
+##  [9] &quot;LandContour&quot;   &quot;Utilities&quot;     &quot;LotConfig&quot;     &quot;LandSlope&quot;    
+## [13] &quot;Neighborhood&quot;  &quot;Condition1&quot;    &quot;Condition2&quot;    &quot;BldgType&quot;     
+## [17] &quot;HouseStyle&quot;    &quot;OverallQual&quot;   &quot;OverallCond&quot;   &quot;YearBuilt&quot;    
+## [21] &quot;YearRemodAdd&quot;  &quot;RoofStyle&quot;     &quot;RoofMatl&quot;      &quot;Exterior1st&quot;  
+## [25] &quot;Exterior2nd&quot;   &quot;MasVnrType&quot;    &quot;MasVnrArea&quot;    &quot;ExterQual&quot;    
+## [29] &quot;ExterCond&quot;     &quot;Foundation&quot;    &quot;BsmtQual&quot;      &quot;BsmtCond&quot;     
+## [33] &quot;BsmtExposure&quot;  &quot;BsmtFinType1&quot;  &quot;BsmtFinSF1&quot;    &quot;BsmtFinType2&quot; 
+## [37] &quot;BsmtFinSF2&quot;    &quot;BsmtUnfSF&quot;     &quot;TotalBsmtSF&quot;   &quot;Heating&quot;      
+## [41] &quot;HeatingQC&quot;     &quot;CentralAir&quot;    &quot;Electrical&quot;    &quot;X1stFlrSF&quot;    
+## [45] &quot;X2ndFlrSF&quot;     &quot;LowQualFinSF&quot;  &quot;GrLivArea&quot;     &quot;BsmtFullBath&quot; 
+## [49] &quot;BsmtHalfBath&quot;  &quot;FullBath&quot;      &quot;HalfBath&quot;      &quot;BedroomAbvGr&quot; 
+## [53] &quot;KitchenAbvGr&quot;  &quot;KitchenQual&quot;   &quot;TotRmsAbvGrd&quot;  &quot;Functional&quot;   
+## [57] &quot;Fireplaces&quot;    &quot;FireplaceQu&quot;   &quot;GarageType&quot;    &quot;GarageYrBlt&quot;  
+## [61] &quot;GarageFinish&quot;  &quot;GarageCars&quot;    &quot;GarageArea&quot;    &quot;GarageQual&quot;   
+## [65] &quot;GarageCond&quot;    &quot;PavedDrive&quot;    &quot;WoodDeckSF&quot;    &quot;OpenPorchSF&quot;  
+## [69] &quot;EnclosedPorch&quot; &quot;X3SsnPorch&quot;    &quot;ScreenPorch&quot;   &quot;PoolArea&quot;     
+## [73] &quot;PoolQC&quot;        &quot;Fence&quot;         &quot;MiscFeature&quot;   &quot;MiscVal&quot;      
+## [77] &quot;MoSold&quot;        &quot;YrSold&quot;        &quot;SaleType&quot;      &quot;SaleCondition&quot;
+## [81] &quot;SalePrice&quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The last column “SalePrice” is the one we will be measuring. There are 80 other features that we should try to make use of to predict SalePrice.&lt;/p&gt;
+
+&lt;h3 id=&quot;distribution-of-house-prices&quot;&gt;Distribution of house prices&lt;/h3&gt;
+
+&lt;p&gt;First things first, let’s look at how the house prices are distributed.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;sp &amp;lt;- train %&amp;gt;% select(SalePrice)
+ggplot(sp, aes(SalePrice, fill='1')) + geom_histogram() + guides(fill=FALSE)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&quot;explore_files/figure-markdown_github/house-prices-1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;We can see that the distribution is not normal. It has a positive skew.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;sp %&amp;gt;% summarise(Skewness = skewness(SalePrice), Kurtosis = kurtosis(SalePrice))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;##   Skewness Kurtosis
+## 1 1.880941 9.509812
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&quot;feature-correlation&quot;&gt;Feature correlation&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;corrdata &amp;lt;- train %&amp;gt;% select(which(sapply(.,is.numeric)))
+qplot(x=Var1, y=Var2, data=melt(cor(corrdata, use=&quot;p&quot;)), fill=value, geom=&quot;tile&quot;) +
+  scale_fill_gradient2(limits=c(-1, 1)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(x = 'Features', y = 'Features')
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&quot;explore_files/figure-markdown_github/corr-heatmap-1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>House prices: part one</title>
+   <link href="http://username.github.io/rblogging/2016/04/17/house_prices_part_1"/>
+   <updated>2016-04-17T00:00:00+01:00</updated>
+   <id>http://username.github.io/rblogging/2016/04/17/house_prices_part_1</id>
+   <content type="html">&lt;h2 id=&quot;overview&quot;&gt;Overview&lt;/h2&gt;
+
+&lt;p&gt;In the following few posts I will be doing simple exploratory data analysis of the &lt;a href=&quot;https://ww2.amstat.org/publications/jse/v19n3/decock.pdf&quot;&gt;Ames Housing dataset&lt;/a&gt; used in the Kaggle competition &lt;a href=&quot;https://www.kaggle.com/c/house-prices-advanced-regression-techniques&quot;&gt;House Prices: Advanced Regression Techniques&lt;/a&gt;. In later posts, I will go on to run statistical models on the data. This is my first blog post here so it’s also an exercise in creating blog posts!&lt;/p&gt;
+
+&lt;p&gt;The problem is to try to correctly predict the house prices in the test dataset by training a regression model on the training data.&lt;/p&gt;
+
+&lt;p&gt;I will soon do an exploratory data analysis of the data, however to begin with, the data should be cleaned. In particular, the empty values should be filled in.&lt;/p&gt;
+
+&lt;p&gt;First, let’s load the data.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;library(dplyr)
+library(ggplot2)
+library(reshape2)
+
+train &amp;lt;- read.csv('train.csv', stringsAsFactors = F)
+test &amp;lt;- read.csv('test.csv', stringsAsFactors = F)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&quot;columns&quot;&gt;Columns&lt;/h3&gt;
+
+&lt;p&gt;Here are the columns available in the dataset:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;names(train)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;##  [1] &quot;Id&quot;            &quot;MSSubClass&quot;    &quot;MSZoning&quot;      &quot;LotFrontage&quot;  
+##  [5] &quot;LotArea&quot;       &quot;Street&quot;        &quot;Alley&quot;         &quot;LotShape&quot;     
+##  [9] &quot;LandContour&quot;   &quot;Utilities&quot;     &quot;LotConfig&quot;     &quot;LandSlope&quot;    
+## [13] &quot;Neighborhood&quot;  &quot;Condition1&quot;    &quot;Condition2&quot;    &quot;BldgType&quot;     
+## [17] &quot;HouseStyle&quot;    &quot;OverallQual&quot;   &quot;OverallCond&quot;   &quot;YearBuilt&quot;    
+## [21] &quot;YearRemodAdd&quot;  &quot;RoofStyle&quot;     &quot;RoofMatl&quot;      &quot;Exterior1st&quot;  
+## [25] &quot;Exterior2nd&quot;   &quot;MasVnrType&quot;    &quot;MasVnrArea&quot;    &quot;ExterQual&quot;    
+## [29] &quot;ExterCond&quot;     &quot;Foundation&quot;    &quot;BsmtQual&quot;      &quot;BsmtCond&quot;     
+## [33] &quot;BsmtExposure&quot;  &quot;BsmtFinType1&quot;  &quot;BsmtFinSF1&quot;    &quot;BsmtFinType2&quot; 
+## [37] &quot;BsmtFinSF2&quot;    &quot;BsmtUnfSF&quot;     &quot;TotalBsmtSF&quot;   &quot;Heating&quot;      
+## [41] &quot;HeatingQC&quot;     &quot;CentralAir&quot;    &quot;Electrical&quot;    &quot;X1stFlrSF&quot;    
+## [45] &quot;X2ndFlrSF&quot;     &quot;LowQualFinSF&quot;  &quot;GrLivArea&quot;     &quot;BsmtFullBath&quot; 
+## [49] &quot;BsmtHalfBath&quot;  &quot;FullBath&quot;      &quot;HalfBath&quot;      &quot;BedroomAbvGr&quot; 
+## [53] &quot;KitchenAbvGr&quot;  &quot;KitchenQual&quot;   &quot;TotRmsAbvGrd&quot;  &quot;Functional&quot;   
+## [57] &quot;Fireplaces&quot;    &quot;FireplaceQu&quot;   &quot;GarageType&quot;    &quot;GarageYrBlt&quot;  
+## [61] &quot;GarageFinish&quot;  &quot;GarageCars&quot;    &quot;GarageArea&quot;    &quot;GarageQual&quot;   
+## [65] &quot;GarageCond&quot;    &quot;PavedDrive&quot;    &quot;WoodDeckSF&quot;    &quot;OpenPorchSF&quot;  
+## [69] &quot;EnclosedPorch&quot; &quot;X3SsnPorch&quot;    &quot;ScreenPorch&quot;   &quot;PoolArea&quot;     
+## [73] &quot;PoolQC&quot;        &quot;Fence&quot;         &quot;MiscFeature&quot;   &quot;MiscVal&quot;      
+## [77] &quot;MoSold&quot;        &quot;YrSold&quot;        &quot;SaleType&quot;      &quot;SaleCondition&quot;
+## [81] &quot;SalePrice&quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The last column “SalePrice” is the one we will be measuring so we won’t include this in the full set. We bin the ID column straight away as it’s not needed.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full &amp;lt;-
+  train %&amp;gt;% select(-Id, -SalePrice) %&amp;gt;%
+  bind_rows(test %&amp;gt;% select(-Id))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&quot;data-cleaning&quot;&gt;Data cleaning&lt;/h2&gt;
+
+&lt;p&gt;We look for missing values and try to fill these in&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full %&amp;gt;% 
+  select(which(sapply(full, function(x)any(is.na(x))))) %&amp;gt;%
+  sapply(function(x)sum(ifelse(is.na(x), 1, 0))) %&amp;gt;%
+  sort(decreasing=T)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;##       PoolQC  MiscFeature        Alley        Fence  FireplaceQu 
+##         2909         2814         2721         2348         1420 
+##  LotFrontage  GarageYrBlt GarageFinish   GarageQual   GarageCond 
+##          486          159          159          159          159 
+##   GarageType     BsmtCond BsmtExposure     BsmtQual BsmtFinType2 
+##          157           82           82           81           80 
+## BsmtFinType1   MasVnrType   MasVnrArea     MSZoning    Utilities 
+##           79           24           23            4            2 
+## BsmtFullBath BsmtHalfBath   Functional  Exterior1st  Exterior2nd 
+##            2            2            2            1            1 
+##   BsmtFinSF1   BsmtFinSF2    BsmtUnfSF  TotalBsmtSF   Electrical 
+##            1            1            1            1            1 
+##  KitchenQual   GarageCars   GarageArea     SaleType 
+##            1            1            1            1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&quot;poolqc-missing-values&quot;&gt;PoolQC missing values&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full %&amp;gt;%
+  select(PoolQC) %&amp;gt;%
+  group_by(PoolQC) %&amp;gt;%
+  summarise(Count = n())
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;## # A tibble: 4 × 2
+##   PoolQC Count
+##    &amp;lt;chr&amp;gt; &amp;lt;int&amp;gt;
+## 1     Ex     4
+## 2     Fa     2
+## 3     Gd     4
+## 4   &amp;lt;NA&amp;gt;  2909
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;What to fill in the NA’s with? We will go for a default missing value. The data dictionary says that ‘NA’ means “no pool” so we’ll go with that.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full &amp;lt;-
+  full %&amp;gt;%
+  mutate(PoolQC = ifelse(is.na(PoolQC), 'None', PoolQC))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;What is the situation with PoolArea?&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full %&amp;gt;% filter(PoolQC == 'None', PoolArea &amp;gt; 0) %&amp;gt;% select(PoolArea)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;##   PoolArea
+## 1      368
+## 2      444
+## 3      561
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;There are 3 instances of Pools with non-zero area but “don’t exist”. To fix this let’s look at the relationship between PoolQC and PoolArea&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full %&amp;gt;%
+  filter(PoolQC != 'None') %&amp;gt;% 
+  ggplot(aes(x=factor(PoolQC), y=PoolArea)) + 
+  geom_boxplot(fill='cornflowerblue')
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&quot;house_prices_part_1_files/figure-markdown_github/poolqc-poolarea-1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;So it looks like the 3 cases of non-existent pools with area &amp;gt; 0 should all be given PoolQC = ‘Ex’&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full &amp;lt;-
+  full %&amp;gt;%
+  mutate(PoolQC = ifelse(PoolQC == 'None' &amp;amp; PoolArea &amp;gt; 0, 'Ex', PoolQC))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&quot;miscfeature-missing-values&quot;&gt;MiscFeature missing values&lt;/h3&gt;
+
+&lt;p&gt;Next on the list is MiscFeature. The data dictionary describes this as “Miscellaneous feature not covered in other categories”. Lets do a count of each value:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full %&amp;gt;%
+  group_by(MiscFeature) %&amp;gt;%
+  summarise(Count = n())
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;## # A tibble: 5 × 2
+##   MiscFeature Count
+##         &amp;lt;chr&amp;gt; &amp;lt;int&amp;gt;
+## 1        Gar2     5
+## 2        Othr     4
+## 3        Shed    95
+## 4        TenC     1
+## 5        &amp;lt;NA&amp;gt;  2814
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;I think we’re good to go ahead and fill in the missing values of MiscFeature with ‘None’.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full &amp;lt;-
+  full %&amp;gt;%
+  mutate(MiscFeature = ifelse(is.na(MiscFeature), 'None', MiscFeature))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&quot;miscfeature-second-garages&quot;&gt;MiscFeature Second Garages&lt;/h3&gt;
+
+&lt;p&gt;Value of Gar2 means there is a second Garage. Let’s check whether this is accurately represented in the data&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full  %&amp;gt;%
+  filter(MiscFeature == 'Gar2')%&amp;gt;% 
+  select(GarageType, GarageYrBlt, GarageFinish, GarageCars, GarageArea, GarageQual, GarageCond)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;##   GarageType GarageYrBlt GarageFinish GarageCars GarageArea GarageQual
+## 1     Attchd        1960          RFn          1        301         TA
+## 2    BuiltIn        1977          RFn          2        600         TA
+## 3     Attchd        1958          Unf          1        312         TA
+## 4     Attchd        1953          RFn          1        286         TA
+## 5     Detchd        2002          Unf          2        624         TA
+##   GarageCond
+## 1         TA
+## 2         TA
+## 3         TA
+## 4         TA
+## 5         TA
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Good, so there’s no existence of 2nd garages without a first. However I wonder if there are garages with more Cars in them without room for them.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full %&amp;gt;% ggplot(aes(x = GarageArea, y=GarageCars)) + geom_point(colour = 'cornflowerblue')
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;## Warning: Removed 1 rows containing missing values (geom_point).
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&quot;house_prices_part_1_files/figure-markdown_github/cars-garage-1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;This looks to be behaving well. There dont seem to be any outliers towards the left and top of the graph.&lt;/p&gt;
+
+&lt;h3 id=&quot;fireplacequ-missing-values&quot;&gt;FireplaceQu missing values&lt;/h3&gt;
+
+&lt;p&gt;We use the Fireplaces column to fix the FireplaceQu missing values&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full %&amp;gt;%
+  filter(is.na(FireplaceQu), Fireplaces &amp;gt; 0) %&amp;gt;%
+  select(Fireplaces, FireplaceQu)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;## [1] Fireplaces  FireplaceQu
+## &amp;lt;0 rows&amp;gt; (or 0-length row.names)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Hence, we assign all blank FireplaceQu to ‘None’.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full &amp;lt;-
+  full %&amp;gt;%
+  mutate(FireplaceQu = ifelse(is.na(FireplaceQu), 'None', FireplaceQu))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&quot;lotfrontage-missing-values&quot;&gt;LotFrontage missing values&lt;/h3&gt;
+
+&lt;p&gt;Does lack of a value mean 0 feet as lot frontage?&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full %&amp;gt;%
+  filter(is.na(LotFrontage) | LotFrontage == 0) %&amp;gt;%
+  summarise(Count = n())
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;##   Count
+## 1   486
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Since there are only NA’s and no 0’s then let’s assume so&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full &amp;lt;-
+  full %&amp;gt;%
+  mutate(LotFrontage = ifelse(is.na(LotFrontage), 0, LotFrontage))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&quot;garages&quot;&gt;Garages&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full %&amp;gt;%
+  filter(is.na(GarageType) |
+           is.na(GarageYrBlt) |
+           is.na(GarageFinish) |
+           is.na(GarageCars) |
+           is.na(GarageArea) |
+           is.na(GarageQual) |
+           is.na(GarageCond)) %&amp;gt;%
+  group_by(GarageType, GarageYrBlt, GarageFinish, GarageCars,
+           GarageArea, GarageQual, GarageCond) %&amp;gt;%
+  summarise(Count = n()) %&amp;gt;%
+  knitr::kable()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;GarageType&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;GarageYrBlt&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;GarageFinish&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;GarageCars&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;GarageArea&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;GarageQual&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;GarageCond&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;Count&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Detchd&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;360&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Detchd&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;157&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;So we have 2 cases of Detached garages, 1 with entries for GarageCars and GarageArea, and another for no other Garage entries. We also have 157 cases where there are no entries for anything, so this looks like no garage.&lt;/p&gt;
+
+&lt;p&gt;We’ll fill in the “no garages” first. For the year we will use the YearBuilt&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full &amp;lt;-
+  full %&amp;gt;%
+  transform(GarageType = ifelse(is.na(GarageType), 'None', GarageType),
+            GarageYrBlt = ifelse(is.na(GarageYrBlt), YearBuilt, GarageYrBlt),
+            GarageFinish = ifelse(is.na(GarageFinish), 'None', GarageFinish),
+            GarageCars = ifelse(is.na(GarageCars), 'None', 0),
+            GarageArea = ifelse(is.na(GarageArea), 'None', 0),
+            GarageQual = ifelse(is.na(GarageQual), 'None', GarageQual),
+            GarageCond = ifelse(is.na(GarageCond), 'None', GarageCond))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&quot;basements-cleaning&quot;&gt;Basements cleaning&lt;/h3&gt;
+
+&lt;p&gt;Next up, the basement. Let’s see where the null values occur&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full %&amp;gt;%
+  filter(is.na(BsmtQual) |
+           is.na(BsmtCond) |
+           is.na(BsmtExposure) |
+           is.na(BsmtFinType1) |
+           is.na(BsmtFinSF1) |
+           is.na(BsmtFinType2) |
+           is.na(BsmtFinSF2) | 
+           is.na(BsmtUnfSF) |
+           is.na(BsmtFullBath) |
+           is.na(BsmtHalfBath) |
+           is.na(TotalBsmtSF)) %&amp;gt;%
+  group_by(BsmtQual, BsmtCond, BsmtExposure, BsmtFinType1, BsmtFinSF1,
+           BsmtFinType2, BsmtFinSF2, BsmtUnfSF, BsmtFullBath, BsmtHalfBath,
+           TotalBsmtSF) %&amp;gt;%
+  summarise(Count = n()) %&amp;gt;%
+  knitr::kable()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;BsmtQual&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;BsmtCond&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;BsmtExposure&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;BsmtFinType1&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;BsmtFinSF1&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;BsmtFinType2&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;BsmtFinSF2&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;BsmtUnfSF&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;BsmtFullBath&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;BsmtHalfBath&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;TotalBsmtSF&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;Count&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Gd&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;TA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;No&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;GLQ&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1124&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;479&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1603&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;3206&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Gd&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;TA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Unf&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Unf&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;725&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;725&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Gd&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;TA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Unf&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Unf&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;936&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;936&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Gd&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;TA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Unf&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Unf&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1595&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1595&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Gd&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Mn&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;GLQ&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1044&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Rec&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;382&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1426&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;TA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Av&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;ALQ&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;755&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Unf&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;240&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;995&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;TA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;No&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;BLQ&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1033&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Unf&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;94&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1127&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Fa&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;No&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Unf&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Unf&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;173&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;173&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;TA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;No&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Unf&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Unf&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;356&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;356&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;77&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;From the above we see:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;2 cases of No Basement (BsmtQual) where BsmtCond is not No Basement - takes values of Fair/Typical&lt;/li&gt;
+  &lt;li&gt;These cases occur when the BsmtFinType1 is Unfinished. Square footage is positive here.&lt;/li&gt;
+  &lt;li&gt;5 cases BsmtFinType2 = BsmtFinType1 which shouldn’t happen unless both are NA. Does this happen elsewhere?&lt;/li&gt;
+  &lt;li&gt;Check that BsmtFinSF1 + BsmtFinSF2 + BsmtUnfSF = TotalBsmtSF&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;First, let’s check for cases of BsmtFinType2 = BsmtFinType1 and check that total SF is correct&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full %&amp;gt;%
+  filter(BsmtFinType2 == BsmtFinType1) %&amp;gt;%
+  group_by(BsmtFinType1, BsmtFinType2) %&amp;gt;%
+  summarise(BsmtFinSF1 = sum(BsmtFinSF1),
+            BsmtFinSF2 = sum(BsmtFinSF2),
+            BsmtUnfSF = sum(BsmtUnfSF),
+            TotalBsmtSF = sum(TotalBsmtSF),
+            ChkTotal = sum(BsmtFinSF1) + sum(BsmtFinSF2) + sum(BsmtUnfSF)) %&amp;gt;%
+  knitr::kable()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;BsmtFinType1&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;BsmtFinType2&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;BsmtFinSF1&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;BsmtFinSF2&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;BsmtUnfSF&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;TotalBsmtSF&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;ChkTotal&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;BLQ&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;BLQ&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;543&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;119&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;261&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;923&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;923&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Unf&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Unf&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;826432&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;826432&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;826432&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;The check passed, so let’s set BsmtFinType2 to NA, BsmtFinSF1 to BsmtFinSF1 + BsmtFinSF2, and BsmtFinSF2 to 0.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full &amp;lt;-
+  full %&amp;gt;%
+  transform(BsmtFinType2 = ifelse(BsmtFinType2 == BsmtFinType1, NA, BsmtFinType2),
+            BsmtFinSF1 = ifelse(BsmtFinType2 == BsmtFinType1, BsmtFinSF1 + BsmtFinSF2, BsmtFinSF1),
+            BsmtFinSF2 = ifelse(BsmtFinType2 == BsmtFinType1, 0, BsmtFinSF2))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Let’s check across the dataset that the total basement SF is correct:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full %&amp;gt;%
+  filter(TotalBsmtSF != BsmtFinSF1 + BsmtFinSF2 + BsmtUnfSF) %&amp;gt;%
+  summarise(Count = n())
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;##   Count
+## 1     0
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;All good then. Let’s perform the updates:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Rows 2-4 BsmtExposure indicate No Basement, however this should be No Exposure&lt;/li&gt;
+  &lt;li&gt;One row of 77 cases of completely null values - let’s fill these with the default null values&lt;/li&gt;
+  &lt;li&gt;Rows 8,9 fill in BsmtQual with ‘TA’&lt;/li&gt;
+  &lt;li&gt;Rows 2-4 BsmtFinType2 set to NA, then convert all NA’s to ‘None’&lt;/li&gt;
+  &lt;li&gt;NA’s in BsmtFinSF1, BsmtFinSF2, BsmtUnfSF, TotalBsmtSF, BsmtFullBath, BsmtHalfBath should be 0&lt;/li&gt;
+  &lt;li&gt;NA’s in BsmtQual, BsmtCond, BsmtExposure, BsmtFinType1, BsmtFinType2 should be ‘None’&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full &amp;lt;-
+  full %&amp;gt;%
+  mutate(BsmtExposure = ifelse(is.na(BsmtExposure) &amp;amp; BsmtQual == 'Gd', 'No', BsmtExposure),
+         BsmtFinType2 = ifelse(is.na(BsmtExposure) &amp;amp; BsmtQual == 'Gd', NA, BsmtFinType2),
+         
+         BsmtFinSF1 = ifelse(is.na(BsmtFinSF1), 0, BsmtFinSF1),
+         BsmtFinSF2 = ifelse(is.na(BsmtFinSF2), 0, BsmtFinSF2),
+         BsmtUnfSF = ifelse(is.na(BsmtUnfSF), 0, BsmtUnfSF),
+         TotalBsmtSF = ifelse(is.na(TotalBsmtSF), 0, TotalBsmtSF),
+         BsmtFullBath = ifelse(is.na(BsmtFullBath), 0, BsmtFullBath),
+         BsmtHalfBath = ifelse(is.na(BsmtHalfBath), 0, BsmtHalfBath),
+         
+         BsmtQual = ifelse(is.na(BsmtQual), 'None', BsmtQual),
+         BsmtCond = ifelse(is.na(BsmtCond), 'None', BsmtCond),
+         BsmtExposure = ifelse(is.na(BsmtExposure), 'None', BsmtExposure),
+         BsmtFinType1 = ifelse(is.na(BsmtFinType1), 'None', BsmtFinType1),
+         BsmtFinType2 = ifelse(is.na(BsmtFinType2), 'None', BsmtFinType2))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now what’s left to fill in?&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full %&amp;gt;% 
+  select(which(sapply(full, function(x)any(is.na(x))))) %&amp;gt;%
+  sapply(function(x)sum(ifelse(is.na(x), 1, 0))) %&amp;gt;%
+  sort(decreasing=T)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;##       Alley       Fence  MasVnrType  MasVnrArea    MSZoning   Utilities 
+##        2721        2348          24          23           4           2 
+##  Functional Exterior1st Exterior2nd  Electrical KitchenQual    SaleType 
+##           2           1           1           1           1           1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&quot;alley-and-fence&quot;&gt;Alley and fence&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full %&amp;gt;%
+  group_by(Alley, Fence) %&amp;gt;%
+  summarise(Count = n()) %&amp;gt;%
+  knitr::kable()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;Alley&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;Fence&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;Count&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Grvl&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;GdPrv&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;5&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Grvl&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;GdWo&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;4&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Grvl&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;MnPrv&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;19&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Grvl&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;MnWw&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Grvl&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;91&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Pave&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;GdPrv&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;3&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Pave&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;GdWo&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Pave&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;MnPrv&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;2&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Pave&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;72&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;GdPrv&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;110&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;GdWo&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;107&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;MnPrv&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;308&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;MnWw&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;11&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;2185&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;NA means ‘no alley access’ or ‘no fence’ so let’s fill that with ‘None’&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full &amp;lt;-
+  full %&amp;gt;%
+  mutate(Alley = ifelse(is.na(Alley), 'None', Alley),
+         Fence = ifelse(is.na(Fence), 'None', Fence))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&quot;mason-veneer&quot;&gt;Mason veneer&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full %&amp;gt;%
+  group_by(MasVnrType, ifelse(is.na(MasVnrArea), 0, 1)) %&amp;gt;%
+  summarise(Count = n()) %&amp;gt;%
+  knitr::kable()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;MasVnrType&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;ifelse(is.na(MasVnrArea), 0, 1)&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;Count&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;BrkCmn&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;25&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;BrkFace&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;879&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;None&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1742&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Stone&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;249&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;23&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Fill this in:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full &amp;lt;-
+  full %&amp;gt;%
+  mutate(MasVnrType = ifelse(is.na(MasVnrType), 'None', MasVnrType),
+         MasVnrArea = ifelse(is.na(MasVnrArea), 0, MasVnrArea))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&quot;mszoning&quot;&gt;MSZoning&lt;/h3&gt;
+
+&lt;p&gt;Getting the distribution of MSZoning, we see there are 4 NA’s here:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full %&amp;gt;%
+  group_by(MSZoning) %&amp;gt;%
+  summarise(Count = n()) %&amp;gt;%
+  knitr::kable()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;MSZoning&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;Count&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;C (all)&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;25&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;FV&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;139&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;RH&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;26&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;RL&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;2265&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;RM&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;460&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;4&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Now, let’s see what the most common value of MSZoning is per MSSubClass, and select only the MSSubClass where MSZoning is NA.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;Mode &amp;lt;- function(x) {
+  ux &amp;lt;- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
+
+full %&amp;gt;%
+  group_by(MSSubClass) %&amp;gt;%
+  summarise(AvgZoning = Mode(MSZoning)) %&amp;gt;%
+  inner_join(
+    full %&amp;gt;%
+      filter(is.na(MSZoning)) %&amp;gt;%
+      distinct(),
+    by = &quot;MSSubClass&quot;
+  ) %&amp;gt;%
+  select(MSSubClass, AvgZoning) %&amp;gt;%
+  distinct()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;## # A tibble: 3 × 2
+##   MSSubClass AvgZoning
+##        &amp;lt;int&amp;gt;     &amp;lt;chr&amp;gt;
+## 1         20        RL
+## 2         30        RM
+## 3         70        RM
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Let’s update the values with this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full &amp;lt;-
+  full %&amp;gt;%
+  mutate(MSZoning = ifelse(is.na(MSZoning), ifelse(MSSubClass == 20, 'RL', 'RM'), MSZoning))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Utilities Functional Exterior1st Exterior2nd Electrical KitchenQual SaleType&lt;/p&gt;
+
+&lt;h3 id=&quot;the-rest&quot;&gt;The rest&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full %&amp;gt;%
+  filter(is.na(Utilities) |
+           is.na(Functional) |
+           is.na(Exterior1st) |
+           is.na(Exterior2nd) |
+           is.na(Electrical) |
+           is.na(KitchenQual) |
+           is.na(SaleType)) %&amp;gt;%
+  group_by(Utilities, Functional, Exterior1st, Exterior2nd, Electrical, KitchenQual, SaleType) %&amp;gt;%
+  summarise(Count = n()) %&amp;gt;%
+  knitr::kable()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;Utilities&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;Functional&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;Exterior1st&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;Exterior2nd&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;Electrical&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;KitchenQual&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;SaleType&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;Count&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;AllPub&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Mod&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Wd Sdng&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Wd Sdng&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;SBrkr&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;COD&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;AllPub&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Typ&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Plywood&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Plywood&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;SBrkr&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;TA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;AllPub&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Typ&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;VinylSd&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;VinylSd&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Gd&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;WD&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;AllPub&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Typ&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;SBrkr&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Fa&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;WD&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;AllPub&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;AsbShng&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;VinylSd&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;FuseA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Fa&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;WD&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;AllPub&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Wd Sdng&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Wd Sdng&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;SBrkr&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;TA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;COD&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Min1&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Wd Sdng&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Wd Sdng&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;FuseA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;TA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;ConLD&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;NA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Min2&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;BrkFace&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;BrkFace&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;FuseA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;TA&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;WD&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Let’s fill the rest in with the most common value&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;full &amp;lt;-
+  full %&amp;gt;%
+  mutate(Utilities = ifelse(is.na(Utilities), Mode(Utilities), Utilities),
+         Functional = ifelse(is.na(Functional), Mode(Functional), Functional),
+         Exterior1st = ifelse(is.na(Exterior1st), Mode(Exterior1st), Exterior1st),
+         Exterior2nd = ifelse(is.na(Exterior2nd), Mode(Exterior2nd), Exterior2nd),
+         Electrical = ifelse(is.na(Electrical), Mode(Electrical), Electrical),
+         KitchenQual = ifelse(is.na(KitchenQual), Mode(KitchenQual), KitchenQual),
+         SaleType = ifelse(is.na(SaleType), Mode(SaleType), SaleType))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&quot;update-the-train-and-test-data&quot;&gt;Update the train and test data&lt;/h3&gt;
+
+&lt;p&gt;Now that we have fixed the missing values in the train and test data, we may update the original datasets so that we are ready to begin the analysis.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-r&quot;&gt;t &amp;lt;- nrow(train)
+f &amp;lt;- nrow(full)
+
+train &amp;lt;- full[1:t,]
+test &amp;lt;- full[t+1:f,]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We are now ready to do some exploratory analysis.&lt;/p&gt;
+</content>
+ </entry>
+ 
+ 
+</feed>

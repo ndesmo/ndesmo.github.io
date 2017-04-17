@@ -1,0 +1,318 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>House prices: data exploration</title>
+    
+    <meta name="author" content="Name Lastname">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/themes/twitter/css/1.4.0/bootstrap.css" rel="stylesheet">
+    <link href="/assets/themes/twitter/css/style.css?body=1" rel="stylesheet" type="text/css" media="all">
+
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="topbar">
+      <div class="fill">
+        <div class="container">
+          <a class="brand" href="/">Jekyll Bootstrap</a>
+          <ul class="nav">
+            
+            
+            
+
+
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/archive">Archive</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/categories">Categories</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/pages">Pages</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/tags">Tags</a></li>
+      	
+      
+    
+  
+    
+  
+    
+  
+
+
+
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        
+
+<div class="page-header">
+  <h1>House prices: data exploration <small>Supporting tagline</small></h1>
+</div>
+
+<div class="row">
+  <div class="span10">
+    <h2 id="overview">Overview</h2>
+
+<p>In this post I will be doing simple exploratory data analysis of the <a href="https://ww2.amstat.org/publications/jse/v19n3/decock.pdf">Ames Housing dataset</a> used in the Kaggle competition <a href="https://www.kaggle.com/c/house-prices-advanced-regression-techniques">House Prices: Advanced Regression Techniques</a>. This is my first blog post here so it’s also an exercise in creating blog posts!</p>
+
+<h3 id="aims">Aims</h3>
+
+<p>The problem is to try to correctly predict the house prices in the test dataset by training a regression model on the training data. The dataset to be submitted to Kaggle will have the following form:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: right">Id</th>
+      <th style="text-align: right">SalePrice</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: right">1461</td>
+      <td style="text-align: right">169277.1</td>
+    </tr>
+    <tr>
+      <td style="text-align: right">1462</td>
+      <td style="text-align: right">187758.4</td>
+    </tr>
+    <tr>
+      <td style="text-align: right">1463</td>
+      <td style="text-align: right">183583.7</td>
+    </tr>
+    <tr>
+      <td style="text-align: right">1464</td>
+      <td style="text-align: right">179317.5</td>
+    </tr>
+    <tr>
+      <td style="text-align: right">1465</td>
+      <td style="text-align: right">150730.1</td>
+    </tr>
+    <tr>
+      <td style="text-align: right">1466</td>
+      <td style="text-align: right">177151.0</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="analysis">Analysis</h2>
+
+<p>Here I will provide a simple exploratory analysis of the training data. In subsequent posts, I will go into developing the model.</p>
+
+<h3 id="columns">Columns</h3>
+
+<p>Here are the columns available in the dataset:</p>
+
+<pre><code class="language-r">names(train)
+</code></pre>
+
+<pre><code>##  [1] "Id"            "MSSubClass"    "MSZoning"      "LotFrontage"  
+##  [5] "LotArea"       "Street"        "Alley"         "LotShape"     
+##  [9] "LandContour"   "Utilities"     "LotConfig"     "LandSlope"    
+## [13] "Neighborhood"  "Condition1"    "Condition2"    "BldgType"     
+## [17] "HouseStyle"    "OverallQual"   "OverallCond"   "YearBuilt"    
+## [21] "YearRemodAdd"  "RoofStyle"     "RoofMatl"      "Exterior1st"  
+## [25] "Exterior2nd"   "MasVnrType"    "MasVnrArea"    "ExterQual"    
+## [29] "ExterCond"     "Foundation"    "BsmtQual"      "BsmtCond"     
+## [33] "BsmtExposure"  "BsmtFinType1"  "BsmtFinSF1"    "BsmtFinType2" 
+## [37] "BsmtFinSF2"    "BsmtUnfSF"     "TotalBsmtSF"   "Heating"      
+## [41] "HeatingQC"     "CentralAir"    "Electrical"    "X1stFlrSF"    
+## [45] "X2ndFlrSF"     "LowQualFinSF"  "GrLivArea"     "BsmtFullBath" 
+## [49] "BsmtHalfBath"  "FullBath"      "HalfBath"      "BedroomAbvGr" 
+## [53] "KitchenAbvGr"  "KitchenQual"   "TotRmsAbvGrd"  "Functional"   
+## [57] "Fireplaces"    "FireplaceQu"   "GarageType"    "GarageYrBlt"  
+## [61] "GarageFinish"  "GarageCars"    "GarageArea"    "GarageQual"   
+## [65] "GarageCond"    "PavedDrive"    "WoodDeckSF"    "OpenPorchSF"  
+## [69] "EnclosedPorch" "X3SsnPorch"    "ScreenPorch"   "PoolArea"     
+## [73] "PoolQC"        "Fence"         "MiscFeature"   "MiscVal"      
+## [77] "MoSold"        "YrSold"        "SaleType"      "SaleCondition"
+## [81] "SalePrice"
+</code></pre>
+
+<p>The last column “SalePrice” is the one we will be measuring. There are 80 other features that we should try to make use of to predict SalePrice.</p>
+
+<h3 id="distribution-of-house-prices">Distribution of house prices</h3>
+
+<p>First things first, let’s look at how the house prices are distributed.</p>
+
+<pre><code class="language-r">sp &lt;- train %&gt;% select(SalePrice)
+ggplot(sp, aes(SalePrice, fill='1')) + geom_histogram() + guides(fill=FALSE)
+</code></pre>
+
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+</code></pre>
+
+<p><img src="explore_files/figure-markdown_github/house-prices-1.png" alt="" /></p>
+
+<p>We can see that the distribution is not normal. It has a positive skew.</p>
+
+<pre><code class="language-r">sp %&gt;% summarise(Skewness = skewness(SalePrice), Kurtosis = kurtosis(SalePrice))
+</code></pre>
+
+<pre><code>##   Skewness Kurtosis
+## 1 1.880941 9.509812
+</code></pre>
+
+<h3 id="feature-correlation">Feature correlation</h3>
+
+<pre><code class="language-r">corrdata &lt;- train %&gt;% select(which(sapply(.,is.numeric)))
+qplot(x=Var1, y=Var2, data=melt(cor(corrdata, use="p")), fill=value, geom="tile") +
+  scale_fill_gradient2(limits=c(-1, 1)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(x = 'Features', y = 'Features')
+</code></pre>
+
+<p><img src="explore_files/figure-markdown_github/corr-heatmap-1.png" alt="" /></p>
+
+    <hr>
+    <div class="pagination">
+      <ul>
+      
+        <li class="prev"><a href="/rblogging/2016/04/17/house_prices_part_1" title="House prices: part one">&larr; Previous</a></li>
+      
+        <li><a href="/archive.html">Archive</a></li>
+      
+        <li class="next disabled"><a>Next &rarr;</a>
+      
+      </ul>
+    </div>
+    <hr>
+    
+
+
+  <div id="disqus_thread"></div>
+<script type="text/javascript">
+    
+    var disqus_developer = 1;
+    var disqus_shortname = 'jekyllbootstrap'; // required: replace example with your forum shortname
+    
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+
+
+  </div>
+  
+  <div class="span4">
+    <h4>Published</h4>
+    <div class="date"><span>10 April 2017</span></div>
+
+  
+    <h4>Tags</h4>
+    <ul class="tag_box">
+    
+    
+
+
+  
+     
+    	<li><a href="/tags.html#test-ref">test <span>1</span></a></li>
+     
+    	<li><a href="/tags.html#ggplot2-ref">ggplot2 <span>1</span></a></li>
+    
+  
+
+
+
+    </ul>
+    
+  </div>
+</div>
+
+
+      </div>
+
+      <footer>
+        <p>&copy; Name Lastname 2012 
+          with help from <a href="http://jekyllbootstrap.com" target="_blank" title="The Definitive Jekyll Blogging Framework">Jekyll Bootstrap</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    
+
+
+
+  </body>
+</html>
+
