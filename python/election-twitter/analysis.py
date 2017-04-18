@@ -4,6 +4,9 @@ import json
 import pandas as pd
 import matplotlib.pyplot as plt
 
+import random
+from pandas.io.json import json_normalize
+
 tweets_data_path = 'brexit.txt'
 
 tweets_data = []
@@ -16,8 +19,8 @@ with open(tweets_data_path, "r") as tweets_file:
         except:
             continue
         
-from pandas.io.json import json_normalize
-tweets = json_normalize(tweets_data)
+tweets_data_sample = [ tweets_data[i] for i in sorted(random.sample(xrange(len(tweets_data)), 1000)) ]
+tweets = json_normalize(tweets_data_sample)
 
 tweets_by_lang = tweets['lang'].value_counts()
 
@@ -38,3 +41,4 @@ ax.set_xlabel('Countries', fontsize=15)
 ax.set_ylabel('Number of tweets' , fontsize=15)
 ax.set_title('Top 5 languages', fontsize=15, fontweight='bold')
 tweets_by_country[:5].plot(ax=ax, kind='bar', color='red')
+
