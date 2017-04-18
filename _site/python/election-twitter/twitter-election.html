@@ -1,0 +1,379 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>UK election announcement sentiment analysis</title>
+    
+    <meta name="author" content="Name Lastname">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/themes/twitter/css/1.4.0/bootstrap.css" rel="stylesheet">
+    <link href="/assets/themes/twitter/css/style.css?body=1" rel="stylesheet" type="text/css" media="all">
+
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="topbar">
+      <div class="fill">
+        <div class="container">
+          <a class="brand" href="/">Jekyll Bootstrap</a>
+          <ul class="nav">
+            
+            
+            
+
+
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/archive">Archive</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/categories">Categories</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/pages">Pages</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+    
+      
+      	
+      	<li><a href="/tags">Tags</a></li>
+      	
+      
+    
+  
+    
+      
+    
+  
+    
+  
+    
+  
+
+
+
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        
+
+<div class="page-header">
+  <h1>UK election announcement sentiment analysis <small>Supporting tagline</small></h1>
+</div>
+
+<div class="row">
+  <div class="span10">
+    <p>Today there was an announcement that the UK government would be having a snap election. This triggered a lot of heat on Twitter. As someone who lives in the UK, I was interested to see whether I could get some insight into this data, to have an idea at what kind of response the public gave.</p>
+
+<h2 id="setting-up-a-listener">Setting up a listener</h2>
+
+<p>Firstly we need to get the data from Twitter. I managed to get something set up in Python in a short time using the Twitter Streaming API, saving the code to <code>twitter_streaming.py</code>. The code for this is below.</p>
+
+<pre><code class="language-python">#Import the necessary methods from tweepy library
+from tweepy.streaming import StreamListener
+from tweepy import OAuthHandler
+from tweepy import Stream
+import sys
+
+from ConfigParser import ConfigParser
+
+config = ConfigParser()
+config.readfp(open('config.ini', 'r'))
+
+#Variables that contains the user credentials to access Twitter API 
+access_token = config.get('setup', 'access_token')
+access_token_secret = config.get('setup', 'access_token_secret')
+consumer_key = config.get('setup', 'consumer_key')
+consumer_secret = config.get('setup', 'consumer_secret')
+
+
+#This is a basic listener that just prints received tweets to stdout.
+class StdOutListener(StreamListener):
+
+    def on_data(self, data):
+        print data
+        return True
+
+    def on_error(self, status):
+        print status
+
+
+if __name__ == '__main__':
+
+    #This handles Twitter authetification and the connection to Twitter Streaming API
+    l = StdOutListener()
+    auth = OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_token, access_token_secret)
+    stream = Stream(auth, l)
+    
+    keywords = sys.argv[1:]
+    print keywords
+
+    #This line filter Twitter Streams to capture data by the keywords
+    stream.filter(track=keywords)
+</code></pre>
+
+<p>The code above is from a really useful blog post <a href="http://adilmoujahid.com/posts/2014/07/twitter-analytics/">An Introduction to Text Mining using Twitter Streaming API and Python</a>. This helped me get started really quickly so I was able to start pulling data shortly after the event happened. I captured around 1.5 hours of data by running this:</p>
+
+<pre><code>python twitter_streaming.py #TheresaMay #generalelection #brexit &gt; brexit.txt
+</code></pre>
+
+<h2 id="implementing-naive-bayes">Implementing Naive Bayes</h2>
+
+<p>Next thing, I set up a very simple implementation of Naive Bayes sentiment classification, in an attempt to classify the tweets as negative or positive. I used the blog post <a href="http://streamhacker.com/2010/05/10/text-classification-sentiment-analysis-naive-bayes-classifier/">Training and Testing the Naive Bayes Classifier</a> to help me with this.</p>
+
+<p>I created code in the file <code>sentiment.py</code> as the below.</p>
+
+<pre><code class="language-python">import json
+
+# NLTK library for sentiment analysis
+from nltk.classify import NaiveBayesClassifier
+from nltk.corpus import movie_reviews
+
+# source data file and output data file
+tweets_data_path = 'brexit.txt'
+output_file_path = 'brexit_sentiment.txt'
+
+# function to clean a tweet and return words
+def extract_words(text):
+    
+    text = text.lower()
+    text = re.sub(r'[^\w#\s]', ' ', text)
+    
+    return text.split()
+    
+# function to extract the word features from a list of words
+def word_feats(words):
+    return dict([(word, True) for word in words])
+    
+# training the classifier with the positive and negative
+# items in the movie reviews corpus
+negids = movie_reviews.fileids('neg')
+posids = movie_reviews.fileids('pos')
+ 
+negfeats = [(word_feats(movie_reviews.words(fileids=[f])), 'neg') for f in negids]
+posfeats = [(word_feats(movie_reviews.words(fileids=[f])), 'pos') for f in posids]
+ 
+trainfeats = negfeats + posfeats
+
+classifier = NaiveBayesClassifier.train(trainfeats)
+
+# one by one get the sentiment of each tweet and save into the output file
+with open(tweets_data_path, "r") as tweets_file:
+    with open(output_file_path, 'w') as output_file:
+        for line in tweets_file:
+            try:
+                
+                tweet = json.loads(line)
+                tweet_text = tweet['text']
+    
+                words = extract_words(tweet['text'])
+                
+                sentiment = classifier.classify(word_feats(words))
+                data = { 
+                    'tweet': tweet,
+                    'sentiment': sentiment
+                    }
+            
+                json.dump(data, output_file)
+                output_file.write('\n')
+                
+            except:
+                continue
+
+</code></pre>
+
+<p>Now we have a JSON file with ‘sentiment’ containing either ‘neg’ or ‘pos’, and ‘tweet’ containing all the data of the tweet.</p>
+
+<h2 id="analysis">Analysis</h2>
+
+<p>Lastly, I did some very simple analyis of the data that was saved. I created a new file for this in <code>sentiment_analysis.py</code>, based on the previously mentioned blog post <a href="http://adilmoujahid.com/posts/2014/07/twitter-analytics/">An Introduction to Text Mining using Twitter Streaming API and Python</a>.</p>
+
+<p>I took a 5% sample of the data and ran some counts of this, plotting them.</p>
+
+<pre><code class="language-python">import json
+import pandas as pd
+import matplotlib.pyplot as plt
+
+%matplotlib inline
+
+import random
+from pandas.io.json import json_normalize
+
+tweets_data_path = 'brexit_sentiment.txt'
+
+tweets_data = []
+
+i = 0
+with open(tweets_data_path, "r") as tweets_file:
+    for line in tweets_file:
+        i += 1
+        try:
+            if i % 20 == 0:
+                tweet = json.loads(line)
+                tweets_data.append(tweet)
+        except:
+            continue
+        
+tweets = json_normalize(tweets_data)
+
+tweets_by_sentiment = tweets['sentiment'].value_counts()
+
+fig, ax = plt.subplots()
+ax.tick_params(axis='x', labelsize=15)
+ax.tick_params(axis='y', labelsize=10)
+ax.set_xlabel('Sentiment', fontsize=15)
+ax.set_ylabel('Number of tweets' , fontsize=15)
+ax.set_title('Sentiment of tweets', fontsize=15, fontweight='bold')
+tweets_by_sentiment.plot(ax=ax, kind='bar', color='red')
+</code></pre>
+
+<pre><code>&lt;matplotlib.axes._subplots.AxesSubplot at 0xbe326f0&gt;
+</code></pre>
+
+<p><img src="twitter-election_files/twitter-election_1_1.png" alt="png" /></p>
+
+
+    <hr>
+    <div class="pagination">
+      <ul>
+      
+        <li class="prev disabled"><a>&larr; Previous</a></li>
+      
+        <li><a href="/archive.html">Archive</a></li>
+      
+        <li class="next disabled"><a>Next &rarr;</a>
+      
+      </ul>
+    </div>
+    <hr>
+    
+
+
+  <div id="disqus_thread"></div>
+<script type="text/javascript">
+    
+    var disqus_developer = 1;
+    var disqus_shortname = 'jekyllbootstrap'; // required: replace example with your forum shortname
+    
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+
+
+  </div>
+  
+  <div class="span4">
+    <h4>Published</h4>
+    <div class="date"><span>18 April 2017</span></div>
+
+  
+    <h4>Tags</h4>
+    <ul class="tag_box">
+    
+    
+
+
+  
+     
+    	<li><a href="/tags.html#twitter-ref">twitter <span>1</span></a></li>
+    
+  
+
+
+
+    </ul>
+    
+  </div>
+</div>
+
+
+      </div>
+
+      <footer>
+        <p>&copy; Name Lastname 2012 
+          with help from <a href="http://jekyllbootstrap.com" target="_blank" title="The Definitive Jekyll Blogging Framework">Jekyll Bootstrap</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        </p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    
+
+
+
+  </body>
+</html>
+

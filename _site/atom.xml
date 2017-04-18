@@ -4,13 +4,191 @@
  <title>Jekyll Bootstrap</title>
  <link href="http://username.github.io/atom.xml" rel="self"/>
  <link href="http://username.github.io"/>
- <updated>2017-04-17T23:42:24+01:00</updated>
+ <updated>2017-04-18T19:58:24+01:00</updated>
  <id>http://username.github.io</id>
  <author>
    <name>Name Lastname</name>
    <email>blah@email.test</email>
  </author>
 
+ 
+ <entry>
+   <title>UK election announcement sentiment analysis</title>
+   <link href="http://username.github.io/pythonblogging/2017/04/18/twitter_election"/>
+   <updated>2017-04-18T00:00:00+01:00</updated>
+   <id>http://username.github.io/pythonblogging/2017/04/18/twitter_election</id>
+   <content type="html">&lt;p&gt;Today there was an announcement that the UK government would be having a snap election. This triggered a lot of heat on Twitter. As someone who lives in the UK, I was interested to see whether I could get some insight into this data, to have an idea at what kind of response the public gave.&lt;/p&gt;
+
+&lt;h2 id=&quot;setting-up-a-listener&quot;&gt;Setting up a listener&lt;/h2&gt;
+
+&lt;p&gt;Firstly we need to get the data from Twitter. I managed to get something set up in Python in a short time using the Twitter Streaming API, saving the code to &lt;code&gt;twitter_streaming.py&lt;/code&gt;. The code for this is below.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-python&quot;&gt;#Import the necessary methods from tweepy library
+from tweepy.streaming import StreamListener
+from tweepy import OAuthHandler
+from tweepy import Stream
+import sys
+
+from ConfigParser import ConfigParser
+
+config = ConfigParser()
+config.readfp(open('config.ini', 'r'))
+
+#Variables that contains the user credentials to access Twitter API 
+access_token = config.get('setup', 'access_token')
+access_token_secret = config.get('setup', 'access_token_secret')
+consumer_key = config.get('setup', 'consumer_key')
+consumer_secret = config.get('setup', 'consumer_secret')
+
+
+#This is a basic listener that just prints received tweets to stdout.
+class StdOutListener(StreamListener):
+
+    def on_data(self, data):
+        print data
+        return True
+
+    def on_error(self, status):
+        print status
+
+
+if __name__ == '__main__':
+
+    #This handles Twitter authetification and the connection to Twitter Streaming API
+    l = StdOutListener()
+    auth = OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_token, access_token_secret)
+    stream = Stream(auth, l)
+    
+    keywords = sys.argv[1:]
+    print keywords
+
+    #This line filter Twitter Streams to capture data by the keywords
+    stream.filter(track=keywords)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The code above is from a really useful blog post &lt;a href=&quot;http://adilmoujahid.com/posts/2014/07/twitter-analytics/&quot;&gt;An Introduction to Text Mining using Twitter Streaming API and Python&lt;/a&gt;. This helped me get started really quickly so I was able to start pulling data shortly after the event happened. I captured around 1.5 hours of data by running this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;python twitter_streaming.py #TheresaMay #generalelection #brexit &amp;gt; brexit.txt
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&quot;implementing-naive-bayes&quot;&gt;Implementing Naive Bayes&lt;/h2&gt;
+
+&lt;p&gt;Next thing, I set up a very simple implementation of Naive Bayes sentiment classification, in an attempt to classify the tweets as negative or positive. I used the blog post &lt;a href=&quot;http://streamhacker.com/2010/05/10/text-classification-sentiment-analysis-naive-bayes-classifier/&quot;&gt;Training and Testing the Naive Bayes Classifier&lt;/a&gt; to help me with this.&lt;/p&gt;
+
+&lt;p&gt;I created code in the file &lt;code&gt;sentiment.py&lt;/code&gt; as the below.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-python&quot;&gt;import json
+
+# NLTK library for sentiment analysis
+from nltk.classify import NaiveBayesClassifier
+from nltk.corpus import movie_reviews
+
+# source data file and output data file
+tweets_data_path = 'brexit.txt'
+output_file_path = 'brexit_sentiment.txt'
+
+# function to clean a tweet and return words
+def extract_words(text):
+    
+    text = text.lower()
+    text = re.sub(r'[^\w#\s]', ' ', text)
+    
+    return text.split()
+    
+# function to extract the word features from a list of words
+def word_feats(words):
+    return dict([(word, True) for word in words])
+    
+# training the classifier with the positive and negative
+# items in the movie reviews corpus
+negids = movie_reviews.fileids('neg')
+posids = movie_reviews.fileids('pos')
+ 
+negfeats = [(word_feats(movie_reviews.words(fileids=[f])), 'neg') for f in negids]
+posfeats = [(word_feats(movie_reviews.words(fileids=[f])), 'pos') for f in posids]
+ 
+trainfeats = negfeats + posfeats
+
+classifier = NaiveBayesClassifier.train(trainfeats)
+
+# one by one get the sentiment of each tweet and save into the output file
+with open(tweets_data_path, &quot;r&quot;) as tweets_file:
+    with open(output_file_path, 'w') as output_file:
+        for line in tweets_file:
+            try:
+                
+                tweet = json.loads(line)
+                tweet_text = tweet['text']
+    
+                words = extract_words(tweet['text'])
+                
+                sentiment = classifier.classify(word_feats(words))
+                data = { 
+                    'tweet': tweet,
+                    'sentiment': sentiment
+                    }
+            
+                json.dump(data, output_file)
+                output_file.write('\n')
+                
+            except:
+                continue
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now we have a JSON file with ‘sentiment’ containing either ‘neg’ or ‘pos’, and ‘tweet’ containing all the data of the tweet.&lt;/p&gt;
+
+&lt;h2 id=&quot;analysis&quot;&gt;Analysis&lt;/h2&gt;
+
+&lt;p&gt;Lastly, I did some very simple analyis of the data that was saved. I created a new file for this in &lt;code&gt;sentiment_analysis.py&lt;/code&gt;, based on the previously mentioned blog post &lt;a href=&quot;http://adilmoujahid.com/posts/2014/07/twitter-analytics/&quot;&gt;An Introduction to Text Mining using Twitter Streaming API and Python&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;I took a 5% sample of the data and ran some counts of this, plotting them.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-python&quot;&gt;import json
+import pandas as pd
+import matplotlib.pyplot as plt
+
+%matplotlib inline
+
+import random
+from pandas.io.json import json_normalize
+
+tweets_data_path = 'brexit_sentiment.txt'
+
+tweets_data = []
+
+i = 0
+with open(tweets_data_path, &quot;r&quot;) as tweets_file:
+    for line in tweets_file:
+        i += 1
+        try:
+            if i % 20 == 0:
+                tweet = json.loads(line)
+                tweets_data.append(tweet)
+        except:
+            continue
+        
+tweets = json_normalize(tweets_data)
+
+tweets_by_sentiment = tweets['sentiment'].value_counts()
+
+fig, ax = plt.subplots()
+ax.tick_params(axis='x', labelsize=15)
+ax.tick_params(axis='y', labelsize=10)
+ax.set_xlabel('Sentiment', fontsize=15)
+ax.set_ylabel('Number of tweets' , fontsize=15)
+ax.set_title('Sentiment of tweets', fontsize=15, fontweight='bold')
+tweets_by_sentiment.plot(ax=ax, kind='bar', color='red')
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;lt;matplotlib.axes._subplots.AxesSubplot at 0xbe326f0&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&quot;twitter-election_files/twitter-election_1_1.png&quot; alt=&quot;png&quot; /&gt;&lt;/p&gt;
+
+</content>
+ </entry>
  
  <entry>
    <title>House prices: part one</title>
