@@ -4,15 +4,12 @@ title: 'House prices - part one'
 modified:
 categories: blog
 excerpt:
-tags: [] 
+tags: [kaggle, house prices, data cleaning, R] 
 image:
   feature:
 date: 2017-04-17
 ---
 
-
-Overview
---------
 
 In the following few posts I will be doing simple exploratory data analysis of the [Ames Housing dataset](https://ww2.amstat.org/publications/jse/v19n3/decock.pdf) used in the Kaggle competition [House Prices: Advanced Regression Techniques](https://www.kaggle.com/c/house-prices-advanced-regression-techniques). In later posts, I will go on to run statistical models on the data. This is my first blog post here so it's also an exercise in creating blog posts!
 

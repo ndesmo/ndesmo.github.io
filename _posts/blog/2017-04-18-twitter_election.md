@@ -4,7 +4,7 @@ title: 'UK election announcement sentiment analysis'
 modified:
 categories: blog
 excerpt:
-tags: [] 
+tags: [social media, twitter, sentiment analysis, python] 
 image:
   feature:
 date: 2017-04-18
