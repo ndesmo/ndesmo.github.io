@@ -6,8 +6,12 @@ categories: blog
 excerpt:
 tags: [social media, twitter, sentiment analysis, python] 
 image:
-  feature:
+  feature: big-ben.jpg
+  thumb: big-ben-thumb.jpg
+  credit: Unsplash
+  credit-link: https://unsplash.com/photos/X8gIp6xqpPQ
 date: 2017-04-18
+share: true
 ---
 
 Today there was an announcement that the UK government would be having a snap election. This triggered a lot of heat on Twitter. As someone who lives in the UK, I was interested to see whether I could get some insight into this data, to have an idea at what kind of response the public gave.

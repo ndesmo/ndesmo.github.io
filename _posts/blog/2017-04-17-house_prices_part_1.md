@@ -8,6 +8,7 @@ tags: [kaggle, house prices, data cleaning, R]
 image:
   feature:
 date: 2017-04-17
+share: true
 ---
 
 

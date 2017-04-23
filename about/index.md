@@ -1,26 +1,18 @@
 ---
 layout: page
-title: About the Jekyll Theme
-excerpt: "So Simple is a responsive Jekyll theme for your words and images."
+title: About ndesmo
+excerpt: "A place to document my learnings in data science"
 modified: 2014-08-08T19:44:38.564948-04:00
 image:
-  feature: so-simple-sample-image-4.jpg
-  credit: WeGraphics
-  creditlink: http://wegraphics.net/downloads/free-ultimate-blurred-background-pack/
+  feature: starry-sky.jpeg
+  credit: Unsplash
+  creditlink: https://unsplash.com/photos/L8126OwlroY
 ---
 
-Looking for a simple, responsive, theme for your Jekyll powered blog? Well look no further. Here be **So Simple Theme**, the follow up to [**Minimal Mistakes**](http://mmistakes.github.io/minimal-mistakes) --- by designer slash illustrator [Michael Rose](http://mademistakes.com).
+Hello! I am Nick Desmond, a data analyst. This website is an experiment by me to see if I can:
 
-## So Simple Theme is all about:
-
-* Responsive templates. Looking good on mobile, tablet, and desktop.
-* Gracefully degrading in older browsers. Compatible with Internet Explorer 9+ and all modern browsers.
-* Minimal embellishments and subtle animations.
-* Optional large feature images for posts and pages.
-* [Custom 404 page]({{ site.url }}/404.html) to get you started.
-* [Simple site search](https://github.com/christian-fei/Simple-Jekyll-Search)
-* Support for Disqus Comments
-
-<a markdown="0" href="{{ site.url }}/theme-setup" class="btn">Install So Simple Theme</a>
-
-[^1]: Example: *domain.com/category-name/post-title*
+* Set up a blog using [Jekyll](https://jekyllrb.com/)
+* Write up posts using [Rmarkdown](http://rmarkdown.rstudio.com/) and [Jupyter notebook](http://jupyter.org/)
+* Participate in [Kaggle](https://www.kaggle.com/) competitions and document my experiences
+* Write posts about current events with a "data" twist
+* Write articles about data techniques I have learned
