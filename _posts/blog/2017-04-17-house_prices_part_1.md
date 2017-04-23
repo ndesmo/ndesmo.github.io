@@ -6,7 +6,10 @@ categories: blog
 excerpt:
 tags: [kaggle, house prices, data cleaning, R] 
 image:
-  feature:
+  feature: houses.jpeg
+  thumb: houses-thumb.jpeg
+  credit: Palo Cech
+  credit-link: https://www.pexels.com/u/palocech/
 date: 2017-04-17
 share: true
 ---
