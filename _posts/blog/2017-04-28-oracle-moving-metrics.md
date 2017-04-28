@@ -6,10 +6,10 @@ categories: blog
 excerpt:
 tags: [sql, oracle, statistics] 
 image:
-  feature: big-ben.jpg
-  thumb: big-ben-thumb.jpg
-  credit: Unsplash
-  credit-link: https://unsplash.com/photos/X8gIp6xqpPQ
+  feature: stocks-banner.png
+  thumb: stocks.jpeg
+  credit: energepic.com
+  credit-link: https://www.pexels.com/u/energepic-com-27411/
 date: 2017-04-28
 share: true
 ---
