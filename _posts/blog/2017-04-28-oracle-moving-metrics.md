@@ -6,7 +6,7 @@ categories: blog
 excerpt:
 tags: [sql, oracle, statistics] 
 image:
-  feature: stocks-banner.png
+  feature: stocks-banner.PNG
   thumb: stocks.jpeg
   credit: energepic.com
   credit-link: https://www.pexels.com/u/energepic-com-27411/
