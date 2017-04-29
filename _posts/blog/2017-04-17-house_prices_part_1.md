@@ -1,17 +1,22 @@
 ---
 layout: post
-title: 'House prices - part one'
-modified:
-categories: blog
-excerpt:
-tags: [kaggle, house prices, data cleaning, R] 
+title: House prices - part one
+modified: null
+categories: articles
+excerpt: null
+tags:
+  - kaggle
+  - house prices
+  - data cleaning
+  - R
 image:
   feature: houses.jpeg
   thumb: houses-thumb.jpeg
   credit: Palo Cech
-  credit-link: https://www.pexels.com/u/palocech/
-date: 2017-04-17
+  credit-link: 'https://www.pexels.com/u/palocech/'
+date: 2017-04-17T00:00:00.000Z
 share: true
+published: true
 ---
 
 
